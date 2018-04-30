@@ -1,7 +1,8 @@
-import request from 'request-promise-native';
-import tough from 'tough-cookie';
-import cheerio from 'cheerio';
+import * as request from 'request-promise-native';
+import * as tough from 'tough-cookie';
+import * as cheerio from 'cheerio';
 import * as url from 'url';
+import { Script } from 'vm';
 
 const host = 'https://www.hentaiheroes.com';
 const hostUrl = url.parse(host);
@@ -10,7 +11,7 @@ export default class Game {
     private jar;
 
     constructor() {
-        this.jar = request.jar;
+        this.jar = request.jar();
         this.jar.setCookie(new tough.Cookie({
             key: 'age_verification',
             value: '1',
@@ -29,7 +30,7 @@ export default class Game {
             })
             .then(() => request({
                 method: 'POST',
-                uri: `${host}/home.htmlphoenix-ajax.php`,
+                uri: `${host}/phoenix-ajax.php`,
                 jar: this.jar,
                 form: {
                     login: username,
@@ -68,14 +69,48 @@ export default class Game {
      * Récupère la liste des filles dans le harem du joueur
      */
     public getHarem() {
+        return request({
+                uri: `${host}/harem.html`,
+                jar: this.jar,
+            })
+            .then(res => {
+                const $ = cheerio.load(res);
+                const data: any = {};
 
+                function Girl(girl) {
+                    return girl;
+                }
+
+                const script = new Script(Girl.toString() + $('body script').get()[0].children[0].data);
+                script.runInNewContext(data);
+
+                return Object.keys(data.girls).map(key => Object.assign(data.girls[key], {id: key}));
+            })
+        ;
     }
 
     /**
      * Récupère l'argent d'une fille
      */
-    public getMoney() {
+    public getMoney(girl: number) {
+        return request({
+                method: 'POST',
+                uri: `${host}/ajax.php`,
+                jar: this.jar,
+                form: {
+                    class: 'Girl',
+                    who: girl,
+                    action: 'get_salary',
+                },
+                json: true,
+            })
+            .then(res => {
+                if ( !res.success ) {
+                    throw new Error();
+                }
 
+                return res;
+            });
     }
 
     /**
