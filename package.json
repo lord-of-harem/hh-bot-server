@@ -1,0 +1,36 @@
+{
+  "name": "hh-bot-server",
+  "version": "0.1.0",
+  "description": "",
+  "main": "src/index.ts",
+  "scripts": {
+    "build": "typescript",
+    "dev": "nodemon --exec ts-node ./src/index.ts",
+    "test": "typescript && mocha dist/**/*.spec.js",
+    "lint": "eslint src --ext ts"
+  },
+  "keywords": [],
+  "author": {
+    "name": "Lord of Harem",
+    "email": "lords.of.harem@gmail.com"
+  },
+  "license": "ISC",
+  "repository": "github:lord-of-harem/hh-bot-server",
+  "dependencies": {
+    "express": "^4.15.3"
+  },
+  "devDependencies": {
+    "@types/mocha": "^2.2.48",
+    "@types/node": "^7.0.61",
+    "eslint": "^4.19.1",
+    "eslint-config-airbnb-base": "^11.3.2",
+    "eslint-plugin-import": "^2.11.0",
+    "eslint-plugin-promise": "^3.7.0",
+    "mocha": "^3.5.3",
+    "nodemon": "^1.17.3",
+    "supertest": "^3.0.0",
+    "ts-node": "^6.0.2",
+    "typescript": "^2.8.3",
+    "typescript-eslint-parser": "^15.0.0"
+  }
+}
