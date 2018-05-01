@@ -1,5 +1,5 @@
 import * as express from 'express';
-import Player from './Player';
+import { default as Player, Service, Command } from './Player';
 
 class App {
     public express;
@@ -24,16 +24,10 @@ class App {
     public test() {
         let p = new Player('', '');
 
-        p.runHarem()
-            .catch(console.error)
-        ;
-
-        p.runQuest()
-            .catch(console.error)
-        ;
-
-        p.runPvp()
-            .catch(console.error)
+        p
+            .updateService(Service.Harem, Command.Start)
+            .updateService(Service.Quest, Command.Start)
+            .updateService(Service.Pvp, Command.Start)
         ;
     }
 }
