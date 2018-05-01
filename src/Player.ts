@@ -1,5 +1,6 @@
 import Game from './Game';
 import { Quest } from './models/Quest';
+import { Opponent } from './models/Opponent';
 
 export default class Player
 {
@@ -9,6 +10,7 @@ export default class Player
     private isLogged = false;
     private girlsMoney: Map<number, number>;
     private quest = null;
+    private pvp = null
 
     constructor(username: string, password: string) {
         this.game = new Game();
@@ -38,6 +40,10 @@ export default class Player
         }
     }
 
+    /**
+     * Lance le lancement automatique des quêtes
+     * @returns {Promise<T>}
+     */
     public runQuest() {
         return this.login()
             .then(() => this.game.getQuests())
@@ -69,8 +75,36 @@ export default class Player
         ;
     }
 
+    /**
+     * Stop le lancement automatique des quêtes
+     */
     public stopQuest() {
+        clearTimeout(this.quest);
+    }
 
+    /**
+     * Lance les combats automatique contre les autres joueurs
+     */
+    public runPvp() {
+        return this.login()
+            .then(() => this.game.getPvpOpponents())
+            .then(arena => {
+                for ( let opponent of arena.opponents ) {
+                    if ( opponent.enable ) {
+                        this.fight(opponent);
+                    }
+                }
+
+                this.pvp = setTimeout(() => this.runPvp(), arena.timeout * 1000);
+            })
+        ;
+    }
+
+    /**
+     * Stop les combats automatique contre les autres joueurs
+     */
+    public stopPvp() {
+        clearTimeout(this.pvp);
     }
 
     /**
@@ -112,4 +146,14 @@ export default class Player
             .catch(console.error)
         ;
     }
+
+    /**
+     * Lance un combat contre un adversaire
+     */
+    private fight(opponent: Opponent) {
+        console.log('fight');
+        return this.game.fight(opponent)
+            .catch(console.error);
+    }
+
 }

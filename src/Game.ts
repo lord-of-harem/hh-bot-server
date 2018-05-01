@@ -2,11 +2,14 @@ import * as request from 'request-promise-native';
 import * as tough from 'tough-cookie';
 import * as cheerio from 'cheerio';
 import * as url from 'url';
+import * as querystring from 'querystring';
 import * as SocksProxyAgent from 'socks-proxy-agent';
 import { Script } from 'vm';
 import { Quest } from './models/Quest';
 import { Salary } from './models/Salary';
 import { GirlHarem } from './models/GirlHarem';
+import { Opponent } from './models/Opponent';
+import { Arena } from './models/Arena';
 
 const host = 'https://www.hentaiheroes.com';
 const hostUrl = url.parse(host);
@@ -191,15 +194,91 @@ export default class Game {
     /**
      * Récupère la liste des combattants
      */
-    public getOpponents() {
+    public getPvpOpponents(): Promise<Arena> {
+        return request({
+                method: 'GET',
+                uri: `${host}/arena.html`,
+                agent: agent,
+                jar: this.jar,
+            })
+            .then(res => {
+                const $res = cheerio.load(res);
+                const arena: Arena = {
+                    opponents: [],
+                    timeout: 0,
+                };
 
+                $res(`.one_opponent`).each((index, elt) => {
+                    const $opponent = $res(elt);
+                    const opponent: Opponent = {
+                        enable: !$opponent.hasClass('disabled'),
+                        lvl: parseInt($opponent.find('.level_target:first-child').text(), 10),
+                        name: $opponent.find('.name').text().trim(),
+                        id_arena: parseInt(querystring.parse(url.parse($opponent.attr('href')).query).id_arena)
+                    };
+
+                    arena.opponents.push(opponent);
+                });
+
+                const data: any = {};
+                let timer: any;
+
+                function $($data) {
+                    if ( typeof $data === "function" ) {
+                        $data();
+                    }
+
+                    return {on: function() {}, name: $data};
+                }
+
+                function dec_timer(elt, time) {
+                    timer[elt.name] = time;
+                }
+
+                const script = new Script($.toString()
+                    + dec_timer.toString()
+                    + 'var reload; var timer = {};'
+                    + $res('body script').get()[2].children[0].data);
+                script.runInNewContext(data);
+
+                arena.timeout = data.timer['.arena_refresh_counter [rel="count"]'];
+
+                return arena;
+            });
     }
 
     /**
      * Lance un combat contre un autre joueur
      */
-    public fight() {
+    public fight(opponent: Opponent) {
+        return request({
+                method: 'GET',
+                uri: `${host}/battle.html?id_arena=${opponent.id_arena}`,
+                agent: agent,
+                jar: this.jar,
+            })
+            .then(res => {
+                const $ = cheerio.load(res);
+                const data: any = {};
 
+                const script = new Script($('body script').get()[2].children[0].data);
+                script.runInNewContext(data);
+
+                return data.hh_battle_players[1];
+            })
+            .then(who => request({
+                method: 'POST',
+                uri: `${host}/ajax.php`,
+                agent: agent,
+                jar: this.jar,
+                form: {
+                    class: 'Battle',
+                    action: 'fight',
+                    who: who,
+                },
+                json: true,
+            }))
+        ;
     }
 
     // boss
