@@ -28,6 +28,9 @@ class App {
             .catch(console.error)
         ;
 
+        p.runQuest()
+            .catch(console.error)
+        ;
     }
 }
 

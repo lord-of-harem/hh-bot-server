@@ -4,6 +4,9 @@ import * as cheerio from 'cheerio';
 import * as url from 'url';
 import * as SocksProxyAgent from 'socks-proxy-agent';
 import { Script } from 'vm';
+import { Quest } from './models/Quest';
+import { Salary } from './models/Salary';
+import { GirlHarem } from './models/GirlHarem';
 
 const host = 'https://www.hentaiheroes.com';
 const hostUrl = url.parse(host);
@@ -75,7 +78,7 @@ export default class Game {
     /**
      * Récupère la liste des filles dans le harem du joueur
      */
-    public getHarem() {
+    public getHarem(): Promise<Array<GirlHarem>> {
         return request({
                 uri: `${host}/harem.html`,
                 agent: agent,
@@ -100,7 +103,7 @@ export default class Game {
     /**
      * Récupère l'argent d'une fille
      */
-    public getMoney(girl: number) {
+    public getMoney(girl: number): Promise<Salary> {
         return request({
                 method: 'POST',
                 uri: `${host}/ajax.php`,
@@ -113,7 +116,7 @@ export default class Game {
                 },
                 json: true,
             })
-            .then(res => {
+            .then((res): Salary => {
                 if ( !res.success ) {
                     throw new Error();
                 }
@@ -125,15 +128,63 @@ export default class Game {
     /**
      * Récupère la liste des missions du joueur
      */
-    public getMissions() {
+    public getQuests(): Promise<Array<Quest>> {
+        return request({
+                method: 'GET',
+                uri: `${host}/activities.html?tab=missions`,
+                agent: agent,
+                jar: this.jar,
+            })
+            .then(res => {
+                const $ = cheerio.load(res);
+                const quests: Array<Quest> = [];
 
+                $(`.missions_wrap .mission_object`).each((index, elt) => {
+                    const quest = JSON.parse($(elt).attr('data-d'));
+
+                    quest.duration = parseInt(quest.duration, 10);
+                    quest.cost = parseInt(quest.cost, 10);
+                    quest.id_member_mission = parseInt(quest.id_member_mission, 10);
+                    quest.id_mission = parseInt(quest.id_mission, 10);
+                    quest.remaining_time = quest.remaining_time === null ? null : parseInt(quest.remaining_time, 10);
+
+                    quests.push(quest);
+                });
+
+                quests.sort((a, b) => {
+                    if ( a.duration > b.duration ) return 1;
+                    if ( a.duration < b.duration ) return -1;
+
+                    return 0;
+                });
+
+                return quests;
+            });
     }
 
     /**
      * Lance une mission
      */
-    public launchMission() {
+    public launchQuest(quest: Quest) {
+        return request({
+                method: 'POST',
+                uri: `${host}/ajax.php`,
+                agent: agent,
+                jar: this.jar,
+                form: {
+                    action: 'start_mission',
+                    id_mission: quest.id_mission,
+                    id_member_mission: quest.id_member_mission,
+                },
+                json: true,
+            })
+            .then(res => {
+                if ( !res.success ) {
+                    throw new Error();
+                }
 
+                return res;
+            });
     }
 
     /**
