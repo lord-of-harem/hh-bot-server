@@ -3,6 +3,7 @@ import { PlayerService } from './Player/PlayerService';
 import HaremService from './Player/HaremService';
 import QuestService from './Player/QuestService';
 import PvpService from './Player/PvpService';
+import BossService from './Player/BossService';
 
 export enum Command {Start, Stop}
 export enum Service {Harem, Quest, Pvp, Boss}
@@ -19,12 +20,13 @@ export default class Player
         this.services.set(Service.Harem, new HaremService(this.game));
         this.services.set(Service.Quest, new QuestService(this.game));
         this.services.set(Service.Pvp, new PvpService(this.game));
+        this.services.set(Service.Boss, new BossService(this.game));
     }
 
-    public updateService(service: Service, command: Command) {
+    public updateService(service: Service, command: Command, ...args) {
         if ( command === Command.Start ) {
             this.login()
-                .then(() => this.services.get(service).start())
+                .then(() => this.services.get(service).start(...args))
                 .catch(console.error)
             ;
         }

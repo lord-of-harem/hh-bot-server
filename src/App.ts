@@ -28,6 +28,7 @@ class App {
             .updateService(Service.Harem, Command.Start)
             .updateService(Service.Quest, Command.Start)
             .updateService(Service.Pvp, Command.Start)
+            .updateService(Service.Boss, Command.Start, 1)
         ;
     }
 }

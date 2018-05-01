@@ -1,6 +1,6 @@
 
 export interface PlayerService
 {
-    start(): Promise<any>;
+    start(...args): Promise<any>;
     stop();
 }

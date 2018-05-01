@@ -278,8 +278,49 @@ export default class Game {
                 },
                 json: true,
             }))
+            .then(res => {
+                if ( !res.success ) {
+                    throw new Error();
+                }
+
+                return res;
+            })
         ;
     }
 
-    // boss
+    /**
+     * Lance un combat contre un boss
+     */
+    public fightBoss(bossId: number) {
+        return request({
+                method: 'POST',
+                uri: `${host}/ajax.php`,
+                agent: agent,
+                jar: this.jar,
+                form: {
+                    class: 'Battle',
+                    action: 'fight',
+                    who: {
+                        id_troll: bossId,
+                        orgasm: 0,
+                        ego: 0,
+                        x: 0,
+                        curr_ego: 0,
+                        nb_org: 0,
+                        figure: 0,
+                        id_world: bossId + 1,
+                    },
+                },
+                json: true,
+            })
+            .then(res => {
+                if ( !res.success ) {
+                    throw new Error();
+                }
+
+                return res;
+            })
+        ;
+    }
+
 }
