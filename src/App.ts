@@ -24,6 +24,9 @@ class App {
     public test() {
         let p = new Player('', '');
 
+        p.runHarem()
+            .catch(console.error)
+        ;
 
     }
 }

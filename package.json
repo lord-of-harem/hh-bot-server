@@ -21,6 +21,7 @@
     "express": "^4.15.3",
     "request": "^2.85.0",
     "request-promise-native": "^1.0.5",
+    "socks-proxy-agent": "^4.0.1",
     "tough-cookie": "^2.3.4"
   },
   "devDependencies": {

@@ -3,16 +3,34 @@ import Game from './Game';
 export default class Player
 {
     private game: Game;
+    private username: string;
+    private password: string;
+    private isLogged = false;
     private girlsMoney: Map<number, number>;
 
     constructor(username: string, password: string) {
         this.game = new Game();
+        this.username = username;
+        this.password = password;
         this.girlsMoney = new Map();
+    }
 
-        this.game
-            .login(username, password)
+    public runHarem() {
+        return this.login()
             .then(() => this.harem())
         ;
+    }
+
+    public stopHarem() {
+
+    }
+
+    private login() {
+        if ( this.isLogged ) {
+            return Promise.resolve();
+        }
+
+        return this.game.login(this.username, this.password);
     }
 
     private harem() {
