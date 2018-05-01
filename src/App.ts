@@ -31,6 +31,10 @@ class App {
         p.runQuest()
             .catch(console.error)
         ;
+
+        p.runPvp()
+            .catch(console.error)
+        ;
     }
 }
 
