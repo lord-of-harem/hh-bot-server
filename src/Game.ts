@@ -172,6 +172,7 @@ export default class Game {
                 agent: agent,
                 jar: this.jar,
                 form: {
+                    class: 'Missions',
                     action: 'start_mission',
                     id_mission: quest.id_mission,
                     id_member_mission: quest.id_member_mission,

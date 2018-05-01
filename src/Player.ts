@@ -53,14 +53,14 @@ export default class Player
                 // Si une mission est en cour
                 if ( questRun !== null ) {
                     console.log('wait');
-                    this.quest = setTimeout(this.runQuest, questRun.remaining_time * 1000);
+                    this.quest = setTimeout(() => this.runQuest().catch(console.error), questRun.remaining_time * 1000);
                 }
 
                 // Si aucune mission n'est en cour
                 else {
                     for ( const quest of quests ) {
                         // Si la mission est a executée
-                        if ( quest.remaining_time !== null ) {
+                        if ( quest.remaining_time === null ) {
                             return this.launchQuest(quest);
                         }
                     }
@@ -105,9 +105,11 @@ export default class Player
      * @param {Quest} quest
      */
     private launchQuest(quest: Quest) {
+        console.log('launch quest');
         return this.game
             .launchQuest(quest)
-            .then(this.runQuest())
+            .then(() => this.runQuest())
+            .catch(console.error)
         ;
     }
 }
