@@ -4,7 +4,8 @@ import { Quest } from '../models/Quest';
 
 export default class QuestService extends PlayerService
 {
-    private quest = null;
+    private currentQuest = null;
+    private reload = null;
 
     constructor(private game: Game) {
         super();
@@ -12,10 +13,12 @@ export default class QuestService extends PlayerService
 
     start(): Promise<any> {
         return this.game.getQuests()
-            .then(quests => {
+            .then(contest => {
+                this.reload = setTimeout(() => this.restart(), contest.nextUpdate * 1000);
+
                 let questRun: Quest | null = null;
 
-                for ( const quest of quests ) {
+                for ( const quest of contest.quests ) {
                     if ( quest.remaining_time !== null && quest.remaining_time > 0 ) {
                         questRun = quest;
                     }
@@ -24,12 +27,12 @@ export default class QuestService extends PlayerService
                 // Si une mission est en cour
                 if ( questRun !== null ) {
                     console.log('wait');
-                    this.quest = setTimeout(() => this.start().catch(console.error), questRun.remaining_time * 1000);
+                    this.currentQuest = setTimeout(() => this.start().catch(console.error), questRun.remaining_time * 1000);
                 }
 
                 // Si aucune mission n'est en cour
                 else {
-                    for ( const quest of quests ) {
+                    for ( const quest of contest.quests ) {
                         // Si la mission est a executée
                         if ( quest.remaining_time === null ) {
                             return this.launchQuest(quest);
@@ -41,7 +44,8 @@ export default class QuestService extends PlayerService
     }
 
     stop() {
-        clearTimeout(this.quest);
+        clearTimeout(this.currentQuest);
+        clearTimeout(this.reload);
     }
 
     /**

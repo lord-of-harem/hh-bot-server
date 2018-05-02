@@ -24,7 +24,6 @@ class App {
     public test() {
         let p = new Player('', '');
 
-        // TODO restart quest each day
         // TODO restart harem pour new fille
 
         p

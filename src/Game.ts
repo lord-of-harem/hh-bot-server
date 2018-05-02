@@ -10,6 +10,7 @@ import { Salary } from './models/Salary';
 import { GirlHarem } from './models/GirlHarem';
 import { Opponent } from './models/Opponent';
 import { Arena } from './models/Arena';
+import { Contest } from './models/Contest';
 
 const host = 'https://www.hentaiheroes.com';
 const hostUrl = url.parse(host);
@@ -131,7 +132,7 @@ export default class Game {
     /**
      * Récupère la liste des missions du joueur
      */
-    public getQuests(): Promise<Array<Quest>> {
+    public getQuests(): Promise<Contest> {
         return request({
                 method: 'GET',
                 uri: `${host}/activities.html?tab=missions`,
@@ -140,7 +141,10 @@ export default class Game {
             })
             .then(res => {
                 const $ = cheerio.load(res);
-                const quests: Array<Quest> = [];
+                const contest: Contest = {
+                    quests: [],
+                    nextUpdate: 0,
+                };
 
                 $(`.missions_wrap .mission_object`).each((index, elt) => {
                     const quest = JSON.parse($(elt).attr('data-d'));
@@ -151,17 +155,23 @@ export default class Game {
                     quest.id_mission = parseInt(quest.id_mission, 10);
                     quest.remaining_time = quest.remaining_time === null ? null : parseInt(quest.remaining_time, 10);
 
-                    quests.push(quest);
+                    contest.quests.push(quest);
                 });
 
-                quests.sort((a, b) => {
+                contest.quests.sort((a, b) => {
                     if ( a.duration > b.duration ) return 1;
                     if ( a.duration < b.duration ) return -1;
 
                     return 0;
                 });
 
-                return quests;
+                const data: any = {};
+                const script = new Script($('body script').get()[0].children[0].data);
+                script.runInNewContext(data);
+
+                contest.nextUpdate = data.next_update;
+
+                return contest;
             });
     }
 
