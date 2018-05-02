@@ -1,11 +1,13 @@
 import { PlayerService } from './PlayerService';
 import Game from '../Game';
 
-export default class BossService implements PlayerService
+export default class BossService extends PlayerService
 {
     private timeout = null;
 
-    constructor(private game: Game) {}
+    constructor(private game: Game) {
+        super();
+    }
 
     start(bossId: number): Promise<any> {
         this.game

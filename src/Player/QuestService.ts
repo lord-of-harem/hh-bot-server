@@ -2,11 +2,13 @@ import { PlayerService } from './PlayerService';
 import Game from '../Game';
 import { Quest } from '../models/Quest';
 
-export default class QuestService implements PlayerService
+export default class QuestService extends PlayerService
 {
     private quest = null;
 
-    constructor(private game: Game) {}
+    constructor(private game: Game) {
+        super();
+    }
 
     start(): Promise<any> {
         return this.game.getQuests()

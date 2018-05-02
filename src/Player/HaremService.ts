@@ -1,11 +1,13 @@
 import { PlayerService } from './PlayerService';
 import Game from '../Game';
 
-export default class HaremService implements PlayerService
+export default class HaremService extends PlayerService
 {
     private girlsMoney: Map<number, number>;
 
     constructor(private game: Game) {
+        super();
+
         this.girlsMoney = new Map();
     }
 

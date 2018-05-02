@@ -1,18 +1,18 @@
 import Game from './Game';
-import { PlayerService } from './Player/PlayerService';
+import { PlayerServiceInterface } from './Player/PlayerService';
 import HaremService from './Player/HaremService';
 import QuestService from './Player/QuestService';
 import PvpService from './Player/PvpService';
 import BossService from './Player/BossService';
 
-export enum Command {Start, Stop}
+export enum Command {Start, Stop, Restart}
 export enum Service {Harem, Quest, Pvp, Boss}
 
 export default class Player
 {
     private game: Game;
     private isLogged = false;
-    private services: Map<number, PlayerService> = new Map();
+    private services: Map<number, PlayerServiceInterface> = new Map();
 
     constructor(private username: string, private password: string) {
         this.game = new Game();
@@ -33,6 +33,10 @@ export default class Player
 
         else if ( command === Command.Stop ) {
             this.services.get(service).stop();
+        }
+
+        else if ( command === Command.Restart ) {
+            this.services.get(service).restart(...args);
         }
 
         return this;
