@@ -28,7 +28,7 @@ export default class QuestService extends PlayerService
                 // Si une mission est en cour
                 if ( questRun !== null ) {
                     console.log('wait');
-                    this.currentQuest = setTimeout(() => this.start().catch(console.error), questRun.remaining_time * 1000);
+                    this.currentQuest = setTimeout(() => this.restart().catch(console.error), questRun.remaining_time * 1000);
                 }
 
                 // Si aucune mission n'est en cour

@@ -24,7 +24,6 @@ class App {
     public test() {
         let p = new Player('', '');
 
-        // TODO restart counter market
         // TODO auto-get pachinko
 
         p
@@ -32,6 +31,7 @@ class App {
             .updateService(Service.Quest, Command.Start)
             .updateService(Service.Pvp, Command.Start)
             .updateService(Service.Boss, Command.Start, 1)
+            .updateService(Service.Shop, Command.Start, 30)
         ;
     }
 }

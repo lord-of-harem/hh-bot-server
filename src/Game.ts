@@ -348,4 +348,20 @@ export default class Game {
         ;
     }
 
+    /**
+     * Renvoie le temps avant que le marché puisse être renouvellé
+     */
+    public getShop(): Promise<number> {
+        return request({
+                uri: `${host}/shop.html`,
+                agent: agent,
+                jar: this.jar,
+            })
+            .then(res => {
+                const $ = cheerio.load(res);
+
+                return parseInt($(`#shop .shop_count span`).attr('time'), 10);
+            })
+        ;
+    }
 }

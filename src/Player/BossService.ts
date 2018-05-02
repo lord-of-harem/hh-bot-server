@@ -23,7 +23,7 @@ export default class BossService extends PlayerService
                 console.log('fight boss');
                 return this.start(bossId);
             })
-            .catch(() => this.timeout = setTimeout(() => this.start(bossId), 10 * 60000))
+            .catch(() => this.timeout = setTimeout(() => this.restart(bossId), 10 * 60000))
         ;
 
         this.currentStatus = Status.Started;
