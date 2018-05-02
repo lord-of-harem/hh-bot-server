@@ -24,7 +24,8 @@ class App {
     public test() {
         let p = new Player('', '');
 
-        // TODO restart harem pour new fille
+        // TODO restart counter market
+        // TODO auto-get pachinko
 
         p
             .updateService(Service.Harem, Command.Start)

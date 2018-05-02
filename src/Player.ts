@@ -4,6 +4,7 @@ import HaremService from './Player/HaremService';
 import QuestService from './Player/QuestService';
 import PvpService from './Player/PvpService';
 import BossService from './Player/BossService';
+import { EventEmitter } from 'events';
 
 export enum Command {Start, Stop, Restart}
 export enum Service {Harem, Quest, Pvp, Boss}
@@ -13,14 +14,17 @@ export default class Player
     private game: Game;
     private isLogged = false;
     private services: Map<number, PlayerServiceInterface> = new Map();
+    private event: EventEmitter;
 
     constructor(private username: string, private password: string) {
         this.game = new Game();
+        this.event = new EventEmitter();
+        this.initEventService();
 
-        this.services.set(Service.Harem, new HaremService(this.game));
-        this.services.set(Service.Quest, new QuestService(this.game));
-        this.services.set(Service.Pvp, new PvpService(this.game));
-        this.services.set(Service.Boss, new BossService(this.game));
+        this.services.set(Service.Harem, new HaremService(this.game, this.event));
+        this.services.set(Service.Quest, new QuestService(this.game, this.event));
+        this.services.set(Service.Pvp, new PvpService(this.game, this.event));
+        this.services.set(Service.Boss, new BossService(this.game, this.event));
     }
 
     public updateService(service: Service, command: Command, ...args) {
@@ -53,4 +57,9 @@ export default class Player
         return this.game.login(this.username, this.password);
     }
 
+    private initEventService() {
+        this.event
+            .on('drop:girl', () => {})
+        ;
+    }
 }

@@ -1,17 +1,26 @@
-import { PlayerService } from './PlayerService';
+import { PlayerService, Status } from './PlayerService';
 import Game from '../Game';
+import { EventEmitter } from 'events';
 
 export default class HaremService extends PlayerService
 {
     private girlsMoney: Map<number, number>;
 
-    constructor(private game: Game) {
+    constructor(private game: Game, private event: EventEmitter) {
         super();
 
         this.girlsMoney = new Map();
+
+        this.event.on('drop:girl', () => {
+            if ( this.status() === Status.Started ) {
+                this.restart();
+            }
+        });
     }
 
     start() {
+        this.currentStatus = Status.Started;
+
         return this.game
             .getHarem()
             .then(girls =>
@@ -24,6 +33,8 @@ export default class HaremService extends PlayerService
         for ( const timeout of this.girlsMoney.values() ) {
             clearTimeout(timeout);
         }
+
+        this.currentStatus = Status.Stopped;
     }
 
     /**

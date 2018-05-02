@@ -1,12 +1,13 @@
-import { PlayerService } from './PlayerService';
+import { PlayerService, Status } from './PlayerService';
 import Game from '../Game';
 import { Opponent } from '../models/Opponent';
+import { EventEmitter } from 'events';
 
 export default class PvpService extends PlayerService
 {
     private pvp = null;
 
-    constructor(private game: Game) {
+    constructor(private game: Game, private event: EventEmitter) {
         super();
     }
 
@@ -21,12 +22,14 @@ export default class PvpService extends PlayerService
                 }
 
                 this.pvp = setTimeout(() => this.start(), arena.timeout * 1000);
+                this.currentStatus = Status.Started;
             })
         ;
     }
 
     stop() {
         clearTimeout(this.pvp);
+        this.currentStatus = Status.Stopped;
     }
 
     /**

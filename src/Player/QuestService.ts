@@ -1,13 +1,14 @@
-import { PlayerService } from './PlayerService';
+import { PlayerService, Status } from './PlayerService';
 import Game from '../Game';
 import { Quest } from '../models/Quest';
+import { EventEmitter } from 'events';
 
 export default class QuestService extends PlayerService
 {
     private currentQuest = null;
     private reload = null;
 
-    constructor(private game: Game) {
+    constructor(private game: Game, private event: EventEmitter) {
         super();
     }
 
@@ -39,6 +40,8 @@ export default class QuestService extends PlayerService
                         }
                     }
                 }
+
+                this.currentStatus = Status.Started;
             })
         ;
     }
@@ -46,6 +49,7 @@ export default class QuestService extends PlayerService
     stop() {
         clearTimeout(this.currentQuest);
         clearTimeout(this.reload);
+        this.currentStatus = Status.Stopped;
     }
 
     /**
