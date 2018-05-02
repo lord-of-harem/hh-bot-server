@@ -6,9 +6,10 @@ import PvpService from './Player/PvpService';
 import BossService from './Player/BossService';
 import ShopService from './Player/ShopService';
 import { EventEmitter } from 'events';
+import PachinkoService from './Player/PachinkoService';
 
 export enum Command {Start, Stop, Restart}
-export enum Service {Harem, Quest, Pvp, Boss, Shop}
+export enum Service {Harem, Quest, Pvp, Boss, Shop, Pachinko}
 
 export default class Player
 {
@@ -27,6 +28,7 @@ export default class Player
         this.services.set(Service.Pvp, new PvpService(this.game, this.event));
         this.services.set(Service.Boss, new BossService(this.game, this.event));
         this.services.set(Service.Shop, new ShopService(this.game, this.event));
+        this.services.set(Service.Pachinko, new PachinkoService(this.game, this.event));
     }
 
     public updateService(service: Service, command: Command, ...args) {

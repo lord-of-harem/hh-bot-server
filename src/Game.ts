@@ -364,4 +364,54 @@ export default class Game {
             })
         ;
     }
+
+    /**
+     * Renvoie le temps avant que le pachinko gratuit soie jouable
+     */
+    public getPachinko(): Promise<number> {
+        return request({
+                uri: `${host}/pachinko.html`,
+                agent: agent,
+                jar: this.jar,
+            })
+            .then(res => {
+                const $ = cheerio.load(res);
+                const data: any = {};
+
+                function ph_tooltip() {}
+
+                const script = new Script(ph_tooltip.toString() + 'var window = {};'+$('body script').get()[0].children[0].data);
+                script.runInNewContext(data);
+
+                return data.pachinko_var.next_game;
+            })
+        ;
+    }
+
+    /**
+     * Récupère la récompense gratuite au pachinko
+     */
+    public claimRewardPachinko(): Promise<any> {
+        return request({
+                method: 'POST',
+                uri: `${host}/ajax.php`,
+                agent: agent,
+                jar: this.jar,
+                form: {
+                    class: 'Pachinko',
+                    action: 'play',
+                    what: 'pachinko0',
+                    how_many: 1,
+                },
+                json: true,
+            })
+            .then(res => {
+                if ( !res.success ) {
+                    throw new Error();
+                }
+
+                return res;
+            })
+        ;
+    }
 }

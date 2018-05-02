@@ -22,8 +22,8 @@ export default class ShopService extends PlayerService
             .getShop()
             .then(timeout => {
                 console.log('check shop');
-                this.timeout = setTimeout(() => this.restart(), timeout * 1000);
-                this.interval = setTimeout(() => this.restart(), checkInterval * 60 * 1000);
+                this.timeout = setTimeout(() => this.restart(checkInterval), timeout * 1000);
+                this.interval = setTimeout(() => this.restart(checkInterval), checkInterval * 60 * 1000);
             })
         ;
     }
