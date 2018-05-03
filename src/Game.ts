@@ -92,12 +92,16 @@ export default class Game {
                 const $ = cheerio.load(res);
                 const data: any = {};
 
-                function Girl(girl) {
-                    return girl;
-                }
+                try {
+                    function Girl(girl) {
+                        return girl;
+                    }
 
-                const script = new Script(Girl.toString() + $('body script').get()[0].children[0].data);
-                script.runInNewContext(data);
+                    const script = new Script(Girl.toString() + $('body script').get()[0].children[0].data);
+                    script.runInNewContext(data);
+                } catch (e) {
+                    throw new Error(e);
+                }
 
                 return Object.keys(data.girls).map(key => Object.assign(data.girls[key], {id: key}));
             })
@@ -165,11 +169,15 @@ export default class Game {
                     return 0;
                 });
 
-                const data: any = {};
-                const script = new Script($('body script').get()[0].children[0].data);
-                script.runInNewContext(data);
+                try {
+                    const data: any = {};
+                    const script = new Script($('body script').get()[0].children[0].data);
+                    script.runInNewContext(data);
 
-                contest.nextUpdate = data.next_update;
+                    contest.nextUpdate = data.next_update;
+                } catch (e) {
+                    throw new Error(e);
+                }
 
                 return contest;
             });
@@ -245,13 +253,17 @@ export default class Game {
                     timer[elt.name] = time;
                 }
 
-                const script = new Script($.toString()
-                    + dec_timer.toString()
-                    + 'var reload; var timer = {};'
-                    + $res('body script').get()[2].children[0].data);
-                script.runInNewContext(data);
+                try {
+                    const script = new Script($.toString()
+                        + dec_timer.toString()
+                        + 'var reload; var timer = {};'
+                        + $res('body script').get()[2].children[0].data);
+                    script.runInNewContext(data);
 
-                arena.timeout = data.timer['.arena_refresh_counter [rel="count"]'];
+                    arena.timeout = data.timer['.arena_refresh_counter [rel="count"]'];
+                } catch (e) {
+                    throw new Error(e);
+                }
 
                 return arena;
             });
@@ -378,10 +390,14 @@ export default class Game {
                 const $ = cheerio.load(res);
                 const data: any = {};
 
-                function ph_tooltip() {}
+                try {
+                    function ph_tooltip() {}
 
-                const script = new Script(ph_tooltip.toString() + 'var window = {};'+$('body script').get()[0].children[0].data);
-                script.runInNewContext(data);
+                    const script = new Script(ph_tooltip.toString() + 'var window = {};' + $('body script').get()[0].children[0].data);
+                    script.runInNewContext(data);
+                } catch (e) {
+                    throw new Error(e);
+                }
 
                 return data.pachinko_var.next_game;
             })

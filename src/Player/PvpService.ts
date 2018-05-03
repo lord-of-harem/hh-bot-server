@@ -16,8 +16,7 @@ export default class PvpService extends PlayerService
             .then(arena => {
                 for ( let opponent of arena.opponents ) {
                     if ( opponent.enable ) {
-                        this.fight(opponent)
-                            .catch(console.error);
+                        this.fight(opponent);
                     }
                 }
 
@@ -39,6 +38,9 @@ export default class PvpService extends PlayerService
         console.log('fight');
 
         return this.game.fight(opponent)
-            .catch(console.error);
+            .catch(e => {
+                console.error(e);
+            })
+        ;
     }
 }

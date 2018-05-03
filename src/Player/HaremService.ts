@@ -49,7 +49,10 @@ export default class HaremService extends PlayerService
                     this.getMoney(girlId, salary.time * 1000);
                     console.log('Girl ID', girlId, 'Salary', salary.money);
                 })
-                .catch(console.error)
+                .catch(e => {
+                    console.error(e);
+                    this.getMoney(girlId, 1000);
+                })
         }, timeout));
     }
 }

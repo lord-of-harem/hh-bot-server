@@ -43,6 +43,10 @@ export default class QuestService extends PlayerService
 
                 this.currentStatus = Status.Started;
             })
+            .catch(e => {
+                console.error(e);
+                this.restart();
+            })
         ;
     }
 

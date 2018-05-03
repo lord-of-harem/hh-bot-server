@@ -29,7 +29,12 @@ export default class PachinkoService extends PlayerService
                 else {
                     this.timeout = setTimeout(() => this.restart(), timeout * 1000);
                 }
-            });
+            })
+            .catch(e => {
+                console.error(e);
+                this.restart();
+            })
+        ;
     }
 
     stop() {
