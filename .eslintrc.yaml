@@ -47,3 +47,6 @@
     arrow-parens:
       - 2
       - always
+    indent:
+      - 1
+      - 4

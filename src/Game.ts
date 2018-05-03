@@ -35,10 +35,10 @@ export default class Game {
      */
     public login(username: string, password: string) {
         return request({
-                uri: `${host}/home.html`,
-                agent: agent,
-                jar: this.jar,
-            })
+            uri: `${host}/home.html`,
+            agent: agent,
+            jar: this.jar,
+        })
             .then(() => request({
                 method: 'POST',
                 uri: `${host}/phoenix-ajax.php`,
@@ -84,10 +84,10 @@ export default class Game {
      */
     public getHarem(): Promise<Array<GirlHarem>> {
         return request({
-                uri: `${host}/harem.html`,
-                agent: agent,
-                jar: this.jar,
-            })
+            uri: `${host}/harem.html`,
+            agent: agent,
+            jar: this.jar,
+        })
             .then(res => {
                 const $ = cheerio.load(res);
                 const data: any = {};
@@ -109,17 +109,17 @@ export default class Game {
      */
     public getMoney(girl: number): Promise<Salary> {
         return request({
-                method: 'POST',
-                uri: `${host}/ajax.php`,
-                agent: agent,
-                jar: this.jar,
-                form: {
-                    class: 'Girl',
-                    who: girl,
-                    action: 'get_salary',
-                },
-                json: true,
-            })
+            method: 'POST',
+            uri: `${host}/ajax.php`,
+            agent: agent,
+            jar: this.jar,
+            form: {
+                class: 'Girl',
+                who: girl,
+                action: 'get_salary',
+            },
+            json: true,
+        })
             .then((res): Salary => {
                 if ( !res.success ) {
                     throw new Error();
@@ -134,11 +134,11 @@ export default class Game {
      */
     public getQuests(): Promise<Contest> {
         return request({
-                method: 'GET',
-                uri: `${host}/activities.html?tab=missions`,
-                agent: agent,
-                jar: this.jar,
-            })
+            method: 'GET',
+            uri: `${host}/activities.html?tab=missions`,
+            agent: agent,
+            jar: this.jar,
+        })
             .then(res => {
                 const $ = cheerio.load(res);
                 const contest: Contest = {
@@ -180,18 +180,18 @@ export default class Game {
      */
     public launchQuest(quest: Quest) {
         return request({
-                method: 'POST',
-                uri: `${host}/ajax.php`,
-                agent: agent,
-                jar: this.jar,
-                form: {
-                    class: 'Missions',
-                    action: 'start_mission',
-                    id_mission: quest.id_mission,
-                    id_member_mission: quest.id_member_mission,
-                },
-                json: true,
-            })
+            method: 'POST',
+            uri: `${host}/ajax.php`,
+            agent: agent,
+            jar: this.jar,
+            form: {
+                class: 'Missions',
+                action: 'start_mission',
+                id_mission: quest.id_mission,
+                id_member_mission: quest.id_member_mission,
+            },
+            json: true,
+        })
             .then(res => {
                 if ( !res.success ) {
                     throw new Error();
@@ -206,11 +206,11 @@ export default class Game {
      */
     public getPvpOpponents(): Promise<Arena> {
         return request({
-                method: 'GET',
-                uri: `${host}/arena.html`,
-                agent: agent,
-                jar: this.jar,
-            })
+            method: 'GET',
+            uri: `${host}/arena.html`,
+            agent: agent,
+            jar: this.jar,
+        })
             .then(res => {
                 const $res = cheerio.load(res);
                 const arena: Arena = {
@@ -262,11 +262,11 @@ export default class Game {
      */
     public fight(opponent: Opponent) {
         return request({
-                method: 'GET',
-                uri: `${host}/battle.html?id_arena=${opponent.id_arena}`,
-                agent: agent,
-                jar: this.jar,
-            })
+            method: 'GET',
+            uri: `${host}/battle.html?id_arena=${opponent.id_arena}`,
+            agent: agent,
+            jar: this.jar,
+        })
             .then(res => {
                 const $ = cheerio.load(res);
                 const data: any = {};
@@ -303,26 +303,26 @@ export default class Game {
      */
     public fightBoss(bossId: number) {
         return request({
-                method: 'POST',
-                uri: `${host}/ajax.php`,
-                agent: agent,
-                jar: this.jar,
-                form: {
-                    class: 'Battle',
-                    action: 'fight',
-                    who: {
-                        id_troll: bossId,
-                        orgasm: 0,
-                        ego: 0,
-                        x: 0,
-                        curr_ego: 0,
-                        nb_org: 0,
-                        figure: 0,
-                        id_world: bossId + 1,
-                    },
+            method: 'POST',
+            uri: `${host}/ajax.php`,
+            agent: agent,
+            jar: this.jar,
+            form: {
+                class: 'Battle',
+                action: 'fight',
+                who: {
+                    id_troll: bossId,
+                    orgasm: 0,
+                    ego: 0,
+                    x: 0,
+                    curr_ego: 0,
+                    nb_org: 0,
+                    figure: 0,
+                    id_world: bossId + 1,
                 },
-                json: true,
-            })
+            },
+            json: true,
+        })
             .then(res => {
                 if ( !res.success ) {
                     throw new Error();
@@ -353,10 +353,10 @@ export default class Game {
      */
     public getShop(): Promise<number> {
         return request({
-                uri: `${host}/shop.html`,
-                agent: agent,
-                jar: this.jar,
-            })
+            uri: `${host}/shop.html`,
+            agent: agent,
+            jar: this.jar,
+        })
             .then(res => {
                 const $ = cheerio.load(res);
 
@@ -370,10 +370,10 @@ export default class Game {
      */
     public getPachinko(): Promise<number> {
         return request({
-                uri: `${host}/pachinko.html`,
-                agent: agent,
-                jar: this.jar,
-            })
+            uri: `${host}/pachinko.html`,
+            agent: agent,
+            jar: this.jar,
+        })
             .then(res => {
                 const $ = cheerio.load(res);
                 const data: any = {};
@@ -393,18 +393,18 @@ export default class Game {
      */
     public claimRewardPachinko(): Promise<any> {
         return request({
-                method: 'POST',
-                uri: `${host}/ajax.php`,
-                agent: agent,
-                jar: this.jar,
-                form: {
-                    class: 'Pachinko',
-                    action: 'play',
-                    what: 'pachinko0',
-                    how_many: 1,
-                },
-                json: true,
-            })
+            method: 'POST',
+            uri: `${host}/ajax.php`,
+            agent: agent,
+            jar: this.jar,
+            form: {
+                class: 'Pachinko',
+                action: 'play',
+                what: 'pachinko0',
+                how_many: 1,
+            },
+            json: true,
+        })
             .then(res => {
                 if ( !res.success ) {
                     throw new Error();

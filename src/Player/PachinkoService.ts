@@ -18,7 +18,11 @@ export default class PachinkoService extends PlayerService
                 if ( timeout === 0 ) {
                     this.game
                         .claimRewardPachinko()
-                        .then(res => this.restart())
+                        .then(res => {
+                            console.log('claim reward pachinko');
+                            this.restart()
+                                .catch(console.error);
+                        })
                     ;
                 }
 
