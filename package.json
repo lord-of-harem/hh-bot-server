@@ -19,6 +19,7 @@
   "dependencies": {
     "cheerio": "^1.0.0-rc.2",
     "express": "^4.15.3",
+    "pouchdb": "^6.4.3",
     "request": "^2.85.0",
     "request-promise-native": "^1.0.5",
     "socks-proxy-agent": "^4.0.1",
@@ -27,6 +28,7 @@
   "devDependencies": {
     "@types/mocha": "^2.2.48",
     "@types/node": "^7.0.61",
+    "@types/pouchdb": "^6.3.2",
     "eslint": "^4.19.1",
     "eslint-config-airbnb-base": "^11.3.2",
     "eslint-plugin-import": "^2.11.0",
