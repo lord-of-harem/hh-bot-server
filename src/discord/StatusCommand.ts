@@ -1,12 +1,12 @@
 import {Command} from '../models/Command';
 import {ServiceCommand} from '../models/ServiceCommand';
 
-export default class StartCommand implements Command
+export default class StatusCommand implements Command
 {
     services: Map<string, ServiceCommand> = new Map();
 
     name(): string {
-        return 'start';
+        return 'status';
     }
 
     exec(msg, ...args): void {
