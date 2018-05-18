@@ -1,6 +1,9 @@
 import PlayerManager from './PlayerManager';
 import { Service } from './Player';
+import discord from './Discord';
+import StartCommand from "./discord/StartCommand";
 
+/*
 PlayerManager
     .register('test', 'test')
     .catch(console.error)
@@ -13,4 +16,6 @@ PlayerManager
             console.log('start');
         }, 20000);
     })
-;
+;*/
+
+discord.addCommand(new StartCommand());
