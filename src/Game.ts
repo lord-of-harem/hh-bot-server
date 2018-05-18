@@ -15,7 +15,6 @@ import { Contest } from './models/Contest';
 const host = 'https://www.hentaiheroes.com';
 const hostUrl = url.parse(host);
 
-const agent = new SocksProxyAgent('socks://127.0.0.1:8888');
 
 export default class Game {
     private jar;
@@ -36,13 +35,11 @@ export default class Game {
     public login(username: string, password: string) {
         return request({
             uri: `${host}/home.html`,
-            agent: agent,
             jar: this.jar,
         })
             .then(() => request({
                 method: 'POST',
                 uri: `${host}/phoenix-ajax.php`,
-                agent: agent,
                 jar: this.jar,
                 form: {
                     login: username,
@@ -61,7 +58,6 @@ export default class Game {
 
                 return request({
                     uri: `${host}/home.html`,
-                    agent: agent,
                     jar: this.jar,
                 });
             })
@@ -74,7 +70,6 @@ export default class Game {
     public logout() {
         return request({
             uri: `${host}/intro.php?phoenix_member=logout`,
-            agent: agent,
             jar: this.jar,
         });
     }
@@ -85,7 +80,6 @@ export default class Game {
     public getHarem(): Promise<Array<GirlHarem>> {
         return request({
             uri: `${host}/harem.html`,
-            agent: agent,
             jar: this.jar,
         })
             .then(res => {
@@ -115,7 +109,6 @@ export default class Game {
         return request({
             method: 'POST',
             uri: `${host}/ajax.php`,
-            agent: agent,
             jar: this.jar,
             form: {
                 class: 'Girl',
@@ -140,7 +133,6 @@ export default class Game {
         return request({
             method: 'GET',
             uri: `${host}/activities.html?tab=missions`,
-            agent: agent,
             jar: this.jar,
         })
             .then(res => {
@@ -190,7 +182,6 @@ export default class Game {
         return request({
             method: 'POST',
             uri: `${host}/ajax.php`,
-            agent: agent,
             jar: this.jar,
             form: {
                 class: 'Missions',
@@ -216,7 +207,6 @@ export default class Game {
         return request({
             method: 'GET',
             uri: `${host}/arena.html`,
-            agent: agent,
             jar: this.jar,
         })
             .then(res => {
@@ -276,7 +266,6 @@ export default class Game {
         return request({
             method: 'GET',
             uri: `${host}/battle.html?id_arena=${opponent.id_arena}`,
-            agent: agent,
             jar: this.jar,
         })
             .then(res => {
@@ -291,7 +280,6 @@ export default class Game {
             .then(who => request({
                 method: 'POST',
                 uri: `${host}/ajax.php`,
-                agent: agent,
                 jar: this.jar,
                 form: {
                     class: 'Battle',
@@ -317,7 +305,6 @@ export default class Game {
         return request({
             method: 'POST',
             uri: `${host}/ajax.php`,
-            agent: agent,
             jar: this.jar,
             form: {
                 class: 'Battle',
@@ -366,7 +353,6 @@ export default class Game {
     public getShop(): Promise<number> {
         return request({
             uri: `${host}/shop.html`,
-            agent: agent,
             jar: this.jar,
         })
             .then(res => {
@@ -383,7 +369,6 @@ export default class Game {
     public getPachinko(): Promise<number> {
         return request({
             uri: `${host}/pachinko.html`,
-            agent: agent,
             jar: this.jar,
         })
             .then(res => {
@@ -411,7 +396,6 @@ export default class Game {
         return request({
             method: 'POST',
             uri: `${host}/ajax.php`,
-            agent: agent,
             jar: this.jar,
             form: {
                 class: 'Pachinko',
