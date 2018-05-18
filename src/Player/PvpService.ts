@@ -23,6 +23,10 @@ export default class PvpService extends PlayerService
                 this.pvp = setTimeout(() => this.restart(), arena.timeout * 1000);
                 this.currentStatus = Status.Started;
             })
+            .catch(e => {
+                console.error(e);
+                this.restart();
+            })
         ;
     }
 

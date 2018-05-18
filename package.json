@@ -4,7 +4,7 @@
   "description": "",
   "main": "src/index.ts",
   "scripts": {
-    "build": "typescript",
+    "build": "tsc",
     "dev": "nodemon --exec ts-node ./src/index.ts",
     "test": "typescript && mocha dist/**/*.spec.js",
     "lint": "eslint src --ext ts"
