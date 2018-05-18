@@ -1,14 +1,16 @@
-import app from './App';
 import PlayerManager from './PlayerManager';
+import { Service } from './Player';
 
-const port = process.env.PORT || 3000;
+PlayerManager
+    .register('test', 'test')
+    .catch(console.error)
+    .then(() => {
+        console.log('stop');
+        PlayerManager.stopService('', Service.Harem);
 
-app.listen(port, (err) => {
-    if (err) {
-        return console.error(err);
-    }
-
-    return console.log(`server is listening on ${port}`);
-});
-
-PlayerManager.register('test', 'test');
+        setTimeout(() => {
+            PlayerManager.startService('', Service.Harem);
+            console.log('start');
+        }, 20000);
+    })
+;

@@ -5,5 +5,8 @@ export interface PlayerModel
     _id: string;
     username: string;
     password: string;
-    services: Array<Service>;
+    services: Array<{
+        service: Service;
+        args: Array<any>;
+    }>;
 }
