@@ -1,4 +1,4 @@
-import { ServiceCommand } from './ServiceCommand';
+import ServiceCommand from './ServiceCommand';
 
 export default abstract class Command
 {

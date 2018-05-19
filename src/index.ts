@@ -6,6 +6,11 @@ import Harem from "./discord/services/harem";
 import StopCommand from "./discord/StopCommand";
 import RestartCommand from "./discord/RestartCommand";
 import StatusCommand from "./discord/StatusCommand";
+import Boss from "./discord/services/boss";
+import Pachinko from "./discord/services/pachinko";
+import Pvp from "./discord/services/pvp";
+import Quest from "./discord/services/quest";
+import Shop from "./discord/services/shop";
 
 /*
 PlayerManager
@@ -25,17 +30,37 @@ PlayerManager
 let c;
 
 c = new StartCommand();
-c.addService(new Harem());
+c.addService(Harem);
+c.addService(Boss);
+c.addService(Pachinko);
+c.addService(Pvp);
+c.addService(Quest);
+c.addService(Shop);
 discord.addCommand(c);
 
 c = new StopCommand();
-c.addService(new Harem());
+c.addService(Harem);
+c.addService(Boss);
+c.addService(Pachinko);
+c.addService(Pvp);
+c.addService(Quest);
+c.addService(Shop);
 discord.addCommand(c);
 
 c = new RestartCommand();
-c.addService(new Harem());
+c.addService(Harem);
+c.addService(Boss);
+c.addService(Pachinko);
+c.addService(Pvp);
+c.addService(Quest);
+c.addService(Shop);
 discord.addCommand(c);
 
 c = new StatusCommand();
-c.addService(new Harem());
+c.addService(Harem);
+c.addService(Boss);
+c.addService(Pachinko);
+c.addService(Pvp);
+c.addService(Quest);
+c.addService(Shop);
 discord.addCommand(c);

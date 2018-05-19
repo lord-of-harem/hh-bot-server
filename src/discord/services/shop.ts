@@ -1,30 +1,30 @@
 import ServiceCommand from '../../models/ServiceCommand';
 
-class Harem extends ServiceCommand
+class Shop extends ServiceCommand
 {
     constructor() {
         super();
     }
 
     name(): string {
-        return 'harem';
+        return 'shop';
     }
 
     start(msg) {
-        msg.reply('harem start');
+        msg.reply('shop start');
     }
 
     stop(msg) {
-        msg.reply('harem stop');
+        msg.reply('shop stop');
     }
 
     restart(msg) {
-        msg.reply('harem restart');
+        msg.reply('shop restart');
     }
 
     status(msg) {
-        msg.reply('harem status');
+        msg.reply('shop status');
     }
 }
 
-export default new Harem();
+export default new Shop();

@@ -1,30 +1,30 @@
 import ServiceCommand from '../../models/ServiceCommand';
 
-class Harem extends ServiceCommand
+class Pvp extends ServiceCommand
 {
     constructor() {
         super();
     }
 
     name(): string {
-        return 'harem';
+        return 'pvp';
     }
 
     start(msg) {
-        msg.reply('harem start');
+        msg.reply('pvp start');
     }
 
     stop(msg) {
-        msg.reply('harem stop');
+        msg.reply('pvp stop');
     }
 
     restart(msg) {
-        msg.reply('harem restart');
+        msg.reply('pvp restart');
     }
 
     status(msg) {
-        msg.reply('harem status');
+        msg.reply('pvp status');
     }
 }
 
-export default new Harem();
+export default new Pvp();
