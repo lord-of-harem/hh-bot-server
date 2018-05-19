@@ -1,6 +1,12 @@
+import Command from './Command';
 
-export interface ServiceCommand
+export default abstract class ServiceCommand
 {
-    name(): string;
-    exec(msg, ...args): void;
+    abstract name(): string;
+
+    exec(command: Command, msg, ...args): void {
+        if ( this[command.name()] ) {
+            this[command.name()](msg, ...args);
+        }
+    }
 }

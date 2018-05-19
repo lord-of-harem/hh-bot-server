@@ -1,27 +1,28 @@
-import { ServiceCommand } from '../../models/ServiceCommand';
-import {Command} from '../../models/Command';
+import ServiceCommand from '../../models/ServiceCommand';
 
-export default class Harem implements ServiceCommand
+export default class Harem extends ServiceCommand
 {
+    constructor() {
+        super();
+    }
+
     name(): string {
         return 'harem';
     }
 
-    exec(command: Command, msg) {
-        if ( command.name() === 'start' ) {
-            msg.reply('harem start');
-        }
+    start(msg, ...args) {
+        msg.reply('harem start');
+    }
 
-        else if ( command.name() === 'stop' ) {
-            msg.reply('harem stop');
-        }
+    stop(msg) {
+        msg.reply('harem stop');
+    }
 
-        else if ( command.name() === 'restart' ) {
-            msg.reply('harem restart');
-        }
+    restart(msg, ...args) {
+        msg.reply('harem restart');
+    }
 
-        else if ( command.name() === 'status' ) {
-            msg.reply('harem status');
-        }
+    status(msg) {
+        msg.reply('harem status');
     }
 }
