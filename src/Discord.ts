@@ -1,5 +1,5 @@
 import {Client} from 'discord.js';
-import {Command} from './models/Command';
+import Command from './models/Command';
 
 class Discord
 {
@@ -13,7 +13,7 @@ class Discord
             .on('ready', () => console.log('discord bot ready'))
             .on('error', console.error)
         ;
-        this.client.login('token');
+        this.client.login(process.env.discordToken);
     }
 
     async message(msg) {

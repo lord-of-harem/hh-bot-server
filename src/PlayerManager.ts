@@ -8,7 +8,7 @@ export default class PlayerManager
     private players: Map<string, Player> = new Map();
 
     constructor() {
-        this.playersDb = new PouchDb('players');
+        this.playersDb = new PouchDb(process.env.playersDb);
 
         this.playersDb.allDocs({
             include_docs: true,
