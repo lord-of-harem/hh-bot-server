@@ -12,21 +12,18 @@ import { Opponent } from './models/Opponent';
 import { Arena } from './models/Arena';
 import { Contest } from './models/Contest';
 
-const host = 'https://www.hentaiheroes.com';
-const hostUrl = url.parse(host);
-
 
 export default class Game {
     private jar;
 
-    constructor() {
+    constructor(private host) {
         this.jar = request.jar();
         this.jar.setCookie(new tough.Cookie({
             key: 'age_verification',
             value: '1',
-            domain: hostUrl.host,
+            domain: url.parse(this.host).host,
             maxAge: 31536000,
-        }), host);
+        }), this.host);
     }
 
     /**
@@ -34,12 +31,12 @@ export default class Game {
      */
     public login(username: string, password: string) {
         return request({
-            uri: `${host}/home.html`,
+            uri: `${this.host}/home.html`,
             jar: this.jar,
         })
             .then(() => request({
                 method: 'POST',
-                uri: `${host}/phoenix-ajax.php`,
+                uri: `${this.host}/phoenix-ajax.php`,
                 jar: this.jar,
                 form: {
                     login: username,
@@ -53,11 +50,11 @@ export default class Game {
             }))
             .then(response => {
                 if ( !response.success ) {
-                    throw new Error("Login error\n" + response.error);
+                    return Promise.reject("Login error\n" + response.error);
                 }
 
                 return request({
-                    uri: `${host}/home.html`,
+                    uri: `$this.host}/home.html`,
                     jar: this.jar,
                 });
             })
@@ -69,7 +66,7 @@ export default class Game {
      */
     public logout() {
         return request({
-            uri: `${host}/intro.php?phoenix_member=logout`,
+            uri: `${this.host}/intro.php?phoenix_member=logout`,
             jar: this.jar,
         });
     }
@@ -79,7 +76,7 @@ export default class Game {
      */
     public getHarem(): Promise<Array<GirlHarem>> {
         return request({
-            uri: `${host}/harem.html`,
+            uri: `${this.host}/harem.html`,
             jar: this.jar,
         })
             .then(res => {
@@ -94,7 +91,7 @@ export default class Game {
                     const script = new Script(Girl.toString() + $('body script').get()[0].children[0].data);
                     script.runInNewContext(data);
                 } catch (e) {
-                    throw new Error(e);
+                    return Promise.reject(e);
                 }
 
                 return Object.keys(data.girls).map(key => Object.assign(data.girls[key], {id: key}));
@@ -108,7 +105,7 @@ export default class Game {
     public getMoney(girl: number): Promise<Salary> {
         return request({
             method: 'POST',
-            uri: `${host}/ajax.php`,
+            uri: `${this.host}/ajax.php`,
             jar: this.jar,
             form: {
                 class: 'Girl',
@@ -117,9 +114,9 @@ export default class Game {
             },
             json: true,
         })
-            .then((res): Salary => {
+            .then(res => {
                 if ( !res.success ) {
-                    throw new Error();
+                    return Promise.reject(new Error('no money'));
                 }
 
                 return res;
@@ -132,7 +129,7 @@ export default class Game {
     public getQuests(): Promise<Contest> {
         return request({
             method: 'GET',
-            uri: `${host}/activities.html?tab=missions`,
+            uri: `${this.host}/activities.html?tab=missions`,
             jar: this.jar,
         })
             .then(res => {
@@ -168,7 +165,7 @@ export default class Game {
 
                     contest.nextUpdate = data.next_update;
                 } catch (e) {
-                    throw new Error(e);
+                    return Promise.reject(new Error(e));
                 }
 
                 return contest;
@@ -181,7 +178,7 @@ export default class Game {
     public launchQuest(quest: Quest) {
         return request({
             method: 'POST',
-            uri: `${host}/ajax.php`,
+            uri: `${this.host}/ajax.php`,
             jar: this.jar,
             form: {
                 class: 'Missions',
@@ -193,7 +190,7 @@ export default class Game {
         })
             .then(res => {
                 if ( !res.success ) {
-                    throw new Error();
+                    return Promise.reject(new Error('Quest not launched'));
                 }
 
                 return res;
@@ -206,7 +203,7 @@ export default class Game {
     public getPvpOpponents(): Promise<Arena> {
         return request({
             method: 'GET',
-            uri: `${host}/arena.html`,
+            uri: `${this.host}/arena.html`,
             jar: this.jar,
         })
             .then(res => {
@@ -252,7 +249,7 @@ export default class Game {
 
                     arena.timeout = data.timer['.arena_refresh_counter [rel="count"]'];
                 } catch (e) {
-                    throw new Error(e);
+                    return Promise.reject(new Error(e));
                 }
 
                 return arena;
@@ -265,7 +262,7 @@ export default class Game {
     public fight(opponent: Opponent) {
         return request({
             method: 'GET',
-            uri: `${host}/battle.html?id_arena=${opponent.id_arena}`,
+            uri: `${this.host}/battle.html?id_arena=${opponent.id_arena}`,
             jar: this.jar,
         })
             .then(res => {
@@ -279,7 +276,7 @@ export default class Game {
             })
             .then(who => request({
                 method: 'POST',
-                uri: `${host}/ajax.php`,
+                uri: `${this.host}/ajax.php`,
                 jar: this.jar,
                 form: {
                     class: 'Battle',
@@ -290,7 +287,7 @@ export default class Game {
             }))
             .then(res => {
                 if ( !res.success ) {
-                    throw new Error();
+                    return Promise.reject(new Error('Fight no launched'));
                 }
 
                 return res;
@@ -304,7 +301,7 @@ export default class Game {
     public fightBoss(bossId: number) {
         return request({
             method: 'POST',
-            uri: `${host}/ajax.php`,
+            uri: `${this.host}/ajax.php`,
             jar: this.jar,
             form: {
                 class: 'Battle',
@@ -324,7 +321,7 @@ export default class Game {
         })
             .then(res => {
                 if ( !res.success ) {
-                    throw new Error();
+                    return Promise.reject(new Error('Boss no fighted'));
                 }
 
                 res.drops = [];
@@ -352,7 +349,7 @@ export default class Game {
      */
     public getShop(): Promise<number> {
         return request({
-            uri: `${host}/shop.html`,
+            uri: `${this.host}/shop.html`,
             jar: this.jar,
         })
             .then(res => {
@@ -368,7 +365,7 @@ export default class Game {
      */
     public getPachinko(): Promise<number> {
         return request({
-            uri: `${host}/pachinko.html`,
+            uri: `${this.host}/pachinko.html`,
             jar: this.jar,
         })
             .then(res => {
@@ -381,7 +378,7 @@ export default class Game {
                     const script = new Script(ph_tooltip.toString() + 'var window = {};' + $('body script').get()[0].children[0].data);
                     script.runInNewContext(data);
                 } catch (e) {
-                    throw new Error(e);
+                    return Promise.reject(new Error(e));
                 }
 
                 return data.pachinko_var.next_game;
@@ -395,7 +392,7 @@ export default class Game {
     public claimRewardPachinko(): Promise<any> {
         return request({
             method: 'POST',
-            uri: `${host}/ajax.php`,
+            uri: `${this.host}/ajax.php`,
             jar: this.jar,
             form: {
                 class: 'Pachinko',
@@ -407,7 +404,7 @@ export default class Game {
         })
             .then(res => {
                 if ( !res.success ) {
-                    throw new Error();
+                    return Promise.reject(new Error('Reward not claimed'));
                 }
 
                 return res;

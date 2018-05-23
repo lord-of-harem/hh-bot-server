@@ -2,7 +2,7 @@ import * as PouchDb from 'pouchdb';
 import { PlayerModel } from './models/Player';
 import Player, { Command, Service } from './Player';
 
-class PlayerManager
+export default class PlayerManager
 {
     private playersDb: PouchDB.Database;
     private players: Map<string, Player> = new Map();
@@ -20,42 +20,51 @@ class PlayerManager
         })
     }
 
-    register(username: string, password: string) {
-        return new Promise((resolve, reject) => this.playersDb.get(username)
+    register(discordId: string, server: string, username: string, password: string) {
+        let pm: PlayerModel = {
+            _id: server + ':' + username,
+            discordId: discordId,
+            username: username,
+            password: password,
+            services: [],
+            server: server,
+        };
+
+        return new Promise((resolve, reject) => this.playersDb.get(discordId)
             .then(() => reject('Player already exists'))
             .catch(() => {
-                let p: PlayerModel = {
-                    _id: username,
-                    username: username,
-                    password: password,
-                    services: [],
-                };
+                let p = new Player(server, username, password);
 
-                p.services.push({service: Service.Harem, args: []});
-                p.services.push({service: Service.Quest, args: []});
-                p.services.push({service: Service.Pvp, args: []});
-                p.services.push({service: Service.Shop, args: [120]});
-                p.services.push({service: Service.Pachinko, args: []});
+                return p.login()
+                    .then(() => p.logout());
+            })
+            .then(() => {
+                pm.services.push({service: Service.Harem, args: []});
+                pm.services.push({service: Service.Quest, args: []});
+                pm.services.push({service: Service.Pvp, args: []});
+                pm.services.push({service: Service.Shop, args: [120]});
+                pm.services.push({service: Service.Pachinko, args: []});
 
                 resolve(this.playersDb
-                    .put(p)
-                    .then(() => this.initPlayer(p))
+                    .put(pm)
+                    .then(() => this.initPlayer(pm))
                 );
-            }))
-        ;
+            })
+            .catch(reject)
+        );
     }
 
-    startService(username: string, service: Service, ...args) {
-        if ( !this.players.has(username) ) {
+    startService(discordId: string, service: Service, ...args) {
+        if ( !this.players.has(discordId) ) {
             return Promise.reject('');
         }
 
-        let p: Player = this.players.get(username);
+        let p: Player = this.players.get(discordId);
 
         p.updateService(service, Command.Stop);
         p.updateService(service, Command.Start, ...args);
 
-        return this.playersDb.get(username)
+        return this.playersDb.get(discordId)
             .then(resp => {
                 const player: PlayerModel = resp as any as PlayerModel;
                 let index = player.services.findIndex(s => s.service === service);
@@ -70,16 +79,16 @@ class PlayerManager
             });
     }
 
-    stopService(username: string, service: Service) {
-        if ( !this.players.has(username) ) {
+    stopService(discordId: string, service: Service) {
+        if ( !this.players.has(discordId) ) {
             return Promise.reject('');
         }
 
-        let p: Player = this.players.get(username);
+        let p: Player = this.players.get(discordId);
 
         p.updateService(service, Command.Stop);
 
-        return this.playersDb.get(username)
+        return this.playersDb.get(discordId)
             .then(resp => {
                 const player: PlayerModel = resp as any as PlayerModel;
                 let index = player.services.findIndex(s => s.service === service);
@@ -93,13 +102,11 @@ class PlayerManager
     }
 
     private initPlayer(pm: PlayerModel) {
-        let p = new Player(pm.username, pm.password);
-        this.players.set(pm.username, p);
+        let p = new Player(pm.server, pm.username, pm.password);
+        this.players.set(pm.discordId, p);
 
         for ( let s of pm.services ) {
             p.updateService(s.service, Command.Start, ...s.args);
         }
     }
 }
-
-export default new PlayerManager();

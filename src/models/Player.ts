@@ -9,4 +9,6 @@ export interface PlayerModel
         service: Service;
         args: Array<any>;
     }>;
+    discordId: string;
+    server: string;
 }

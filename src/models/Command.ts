@@ -1,10 +1,13 @@
 import ServiceCommand from './ServiceCommand';
+import PlayerManager from '../PlayerManager';
 
 export default abstract class Command
 {
     protected services: Map<string, ServiceCommand> = new Map();
 
     abstract name(): string;
+
+    constructor(protected pm: PlayerManager) {}
 
     exec(msg, ...args): void {
         const service = args.shift().toLowerCase();
@@ -19,5 +22,9 @@ export default abstract class Command
 
     addService(service: ServiceCommand) {
         this.services.set(service.name(), service);
+    }
+
+    protected getPlayer(msg) {
+        //this.pm.
     }
 }

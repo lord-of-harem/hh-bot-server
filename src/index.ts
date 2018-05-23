@@ -11,17 +11,21 @@ import Pachinko from "./discord/services/pachinko";
 import Pvp from "./discord/services/pvp";
 import Quest from "./discord/services/quest";
 import Shop from "./discord/services/shop";
+import RegisterCommand from "./discord/RegisterCommand";
+
+const pm = new PlayerManager();
 
 /*
-PlayerManager
+
+pm
     .register('test', 'test')
     .catch(console.error)
     .then(() => {
         console.log('stop');
-        PlayerManager.stopService('', Service.Harem);
+        pm.stopService('', Service.Harem);
 
         setTimeout(() => {
-            PlayerManager.startService('', Service.Harem);
+            pm.startService('', Service.Harem);
             console.log('start');
         }, 20000);
     })
@@ -29,7 +33,7 @@ PlayerManager
 
 let c;
 
-c = new StartCommand();
+c = new StartCommand(pm);
 c.addService(Harem);
 c.addService(Boss);
 c.addService(Pachinko);
@@ -38,7 +42,7 @@ c.addService(Quest);
 c.addService(Shop);
 discord.addCommand(c);
 
-c = new StopCommand();
+c = new StopCommand(pm);
 c.addService(Harem);
 c.addService(Boss);
 c.addService(Pachinko);
@@ -47,7 +51,7 @@ c.addService(Quest);
 c.addService(Shop);
 discord.addCommand(c);
 
-c = new RestartCommand();
+c = new RestartCommand(pm);
 c.addService(Harem);
 c.addService(Boss);
 c.addService(Pachinko);
@@ -56,11 +60,14 @@ c.addService(Quest);
 c.addService(Shop);
 discord.addCommand(c);
 
-c = new StatusCommand();
+c = new StatusCommand(pm);
 c.addService(Harem);
 c.addService(Boss);
 c.addService(Pachinko);
 c.addService(Pvp);
 c.addService(Quest);
 c.addService(Shop);
+discord.addCommand(c);
+
+c = new RegisterCommand(pm);
 discord.addCommand(c);
