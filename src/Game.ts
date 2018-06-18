@@ -97,7 +97,8 @@ export default class Game {
                     throw new Error(e);
                 }
 
-                return Object.keys(data.girls).map(key => Object.assign(data.girls[key], {id: key}));
+                const girls = Object.keys(data.girlsDataList).map(key => Object.assign(data.girlsDataList[key], {id: key}))
+                return girls.filter(girl => girl.hasOwnProperty('pay_time'));
             })
         ;
     }
@@ -230,6 +231,7 @@ export default class Game {
 
                 const data: any = {};
                 let timer: any;
+                let ti: any;
 
                 function $($data) {
                     if ( typeof $data === "function" ) {
@@ -243,18 +245,25 @@ export default class Game {
                     timer[elt.name] = time;
                 }
 
-                try {
+                function initDecTimer(a, timer) {
+                    //ti = timer;
+                }
+
+                /*try {
                     const script = new Script($.toString()
                         + dec_timer.toString()
                         + 'var reload; var timer = {};'
+                        + 'var ti'
+                        + 'var HHTimers = {initDecTimer: function(){}}};'
                         + $res('body script').get()[2].children[0].data);
                     script.runInNewContext(data);
 
                     arena.timeout = data.timer['.arena_refresh_counter [rel="count"]'];
+                    arena.timeout = 20 * 60 * 1000;
                 } catch (e) {
                     throw new Error(e);
-                }
-
+                }*/
+                arena.timeout = 5 * 60;
                 return arena;
             });
     }
