@@ -6,7 +6,7 @@ export default abstract class ServiceCommand
 
     exec(command: Command, msg, ...args): void {
         if ( this[command.name()] ) {
-            this[command.name()](msg, ...args);
+            this[command.name()](command, msg, ...args);
         }
     }
 }

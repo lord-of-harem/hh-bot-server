@@ -1,4 +1,6 @@
 import ServiceCommand from '../../models/ServiceCommand';
+import {Service} from '../../Player';
+import Command from '../../models/Command'
 
 class Harem extends ServiceCommand
 {
@@ -10,19 +12,32 @@ class Harem extends ServiceCommand
         return 'harem';
     }
 
-    start(msg) {
-        msg.reply('harem start');
+    start(command: Command, msg) {
+        command.pm
+            .startService(msg.author.id, Service.Harem)
+            .then(() => msg.reply('harem start'))
+            .catch(e => msg.reply('error start harem ' + JSON.stringify(e)))
+        ;
     }
 
-    stop(msg) {
-        msg.reply('harem stop');
+    stop(command: Command, msg) {
+        command.pm
+            .stopService(msg.author.id, Service.Harem)
+            .then(() => msg.reply('harem stop'))
+            .catch(e => msg.reply('error stop harem ' + JSON.stringify(e)))
+        ;
     }
 
-    restart(msg) {
-        msg.reply('harem restart');
+    restart(command: Command, msg) {
+        command.pm
+            .stopService(msg.author.id, Service.Harem)
+            .then(() => command.pm.startService(msg.author.id, Service.Harem))
+            .then(() => msg.reply('harem restart'))
+            .catch(e => msg.reply('error restart harem ' + JSON.stringify(e)))
+        ;
     }
 
-    status(msg) {
+    status(command: Command, msg) {
         msg.reply('harem status');
     }
 }

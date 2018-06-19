@@ -1,4 +1,6 @@
 import ServiceCommand from '../../models/ServiceCommand';
+import {Service} from '../../Player';
+import Command from '../../models/Command'
 
 class Shop extends ServiceCommand
 {
@@ -10,16 +12,29 @@ class Shop extends ServiceCommand
         return 'shop';
     }
 
-    start(msg) {
-        msg.reply('shop start');
+    start(command: Command, msg, timer) {
+        command.pm
+            .startService(msg.author.id, Service.Shop, timer)
+            .then(() => msg.reply('shop start'))
+            .catch(e => msg.reply('error start boss ' + JSON.stringify(e)))
+        ;
     }
 
-    stop(msg) {
-        msg.reply('shop stop');
+    stop(command: Command, msg) {
+        command.pm
+            .stopService(msg.author.id, Service.Shop)
+            .then(() => msg.reply('shop stop'))
+            .catch(e => msg.reply('error stop boss ' + JSON.stringify(e)))
+        ;
     }
 
-    restart(msg) {
-        msg.reply('shop restart');
+    restart(command: Command, msg, timer) {
+        command.pm
+            .stopService(msg.author.id, Service.Shop)
+            .then(() => command.pm.startService(msg.author.id, Service.Shop, timer))
+            .then(() => msg.reply('shop restart'))
+            .catch(e => msg.reply('error restart shop ' + JSON.stringify(e)))
+        ;
     }
 
     status(msg) {

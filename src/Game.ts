@@ -54,7 +54,7 @@ export default class Game {
                 }
 
                 return request({
-                    uri: `$this.host}/home.html`,
+                    uri: `${this.host}/home.html`,
                     jar: this.jar,
                 });
             })

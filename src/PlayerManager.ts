@@ -22,7 +22,7 @@ export default class PlayerManager
 
     register(discordId: string, server: string, username: string, password: string) {
         let pm: PlayerModel = {
-            _id: server + ':' + username,
+            _id: discordId,
             discordId: discordId,
             username: username,
             password: password,

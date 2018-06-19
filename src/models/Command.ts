@@ -7,7 +7,7 @@ export default abstract class Command
 
     abstract name(): string;
 
-    constructor(protected pm: PlayerManager) {}
+    constructor(public pm: PlayerManager) {}
 
     exec(msg, ...args): void {
         const service = args.shift().toLowerCase();

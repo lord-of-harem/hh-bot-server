@@ -1,4 +1,6 @@
 import ServiceCommand from '../../models/ServiceCommand';
+import {Service} from '../../Player';
+import Command from '../../models/Command'
 
 class Quest extends ServiceCommand
 {
@@ -10,16 +12,29 @@ class Quest extends ServiceCommand
         return 'mission';
     }
 
-    start(msg) {
-        msg.reply('mission start');
+    start(command: Command, msg) {
+        command.pm
+            .startService(msg.author.id, Service.Quest)
+            .then(() => msg.reply('mission start'))
+            .catch(e => msg.reply('error start mission ' + JSON.stringify(e)))
+        ;
     }
 
-    stop(msg) {
-        msg.reply('mission stop');
+    stop(command: Command, msg) {
+        command.pm
+            .stopService(msg.author.id, Service.Quest)
+            .then(() => msg.reply('mission stop'))
+            .catch(e => msg.reply('error stop mission ' + JSON.stringify(e)))
+        ;
     }
 
-    restart(msg) {
-        msg.reply('mission restart');
+    restart(command: Command, msg) {
+        command.pm
+            .stopService(msg.author.id, Service.Quest)
+            .then(() => command.pm.startService(msg.author.id, Service.Quest))
+            .then(() => msg.reply('mission restart'))
+            .catch(e => msg.reply('error restart mission ' + JSON.stringify(e)))
+        ;
     }
 
     status(msg) {

@@ -17,7 +17,7 @@ export default class RegisterCommand extends Command
                 msg.reply('register ok');
             })
             .catch(e => {
-                msg.reply('error auth');
+                msg.reply('error auth ' + e);
             })
         ;
 
