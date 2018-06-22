@@ -12,7 +12,7 @@ class Shop extends ServiceCommand
         return 'shop';
     }
 
-    start(command: Command, msg, timer) {
+    start(command: Command, msg, timer = 120) {
         command.pm
             .startService(msg.author.id, Service.Shop, timer)
             .then(() => msg.reply('shop start'))
