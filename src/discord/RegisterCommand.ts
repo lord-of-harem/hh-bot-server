@@ -20,9 +20,5 @@ export default class RegisterCommand extends Command
                 msg.reply('error auth ' + e);
             })
         ;
-
-        /*msg.reply('login ' + args[0]);
-        msg.reply('password ' + args[1]);
-        msg.reply('token ' + msg.author.id);*/
     }
 }

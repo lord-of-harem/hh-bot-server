@@ -12,24 +12,9 @@ import Pvp from "./discord/services/pvp";
 import Quest from "./discord/services/quest";
 import Shop from "./discord/services/shop";
 import RegisterCommand from "./discord/RegisterCommand";
+import HelpCommand from "./discord/HelpCommand";
 
 const pm = new PlayerManager();
-
-/*
-
-pm
-    .register('test', 'test')
-    .catch(console.error)
-    .then(() => {
-        console.log('stop');
-        pm.stopService('', Service.Harem);
-
-        setTimeout(() => {
-            pm.startService('', Service.Harem);
-            console.log('start');
-        }, 20000);
-    })
-;*/
 
 let c;
 
@@ -70,4 +55,7 @@ c.addService(Shop);
 discord.addCommand(c);
 
 c = new RegisterCommand(pm);
+discord.addCommand(c);
+
+c = new HelpCommand(pm);
 discord.addCommand(c);
