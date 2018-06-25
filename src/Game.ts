@@ -3,7 +3,6 @@ import * as tough from 'tough-cookie';
 import * as cheerio from 'cheerio';
 import * as url from 'url';
 import * as querystring from 'querystring';
-import * as SocksProxyAgent from 'socks-proxy-agent';
 import { Script } from 'vm';
 import { Quest } from './models/Quest';
 import { Salary } from './models/Salary';
@@ -17,13 +16,15 @@ export default class Game {
     private jar;
 
     constructor(private host) {
+        let cookie = `Cookie="age_verification=1;`
+            +` Max-Age=31536000;`
+            +` Domain=${url.parse(this.host).host};`
+            +` hostOnly=?;`
+            +` aAge=?; `
+            +`cAge=1ms"`;
+
         this.jar = request.jar();
-        this.jar.setCookie(new tough.Cookie({
-            key: 'age_verification',
-            value: '1',
-            domain: url.parse(this.host).host,
-            maxAge: 31536000,
-        }), this.host);
+        this.jar.setCookie(cookie, this.host);
     }
 
     /**
