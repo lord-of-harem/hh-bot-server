@@ -13,7 +13,7 @@ class Discord
             .on('ready', () => console.log('discord bot ready'))
             .on('error', console.error)
         ;
-        this.client.login(process.env.discordToken);
+        this.client.login(process.env.DISCORD_TOKEN);
     }
 
     async message(msg) {
