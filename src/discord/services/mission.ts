@@ -2,7 +2,7 @@ import ServiceCommand from '../../models/ServiceCommand';
 import {Service} from '../../Player';
 import Command from '../../models/Command'
 
-class Quest extends ServiceCommand
+class Mission extends ServiceCommand
 {
     constructor() {
         super();
@@ -14,7 +14,7 @@ class Quest extends ServiceCommand
 
     start(command: Command, msg) {
         command.pm
-            .startService(msg.author.id, Service.Quest)
+            .startService(msg.author.id, Service.Mission)
             .then(() => msg.reply('mission start'))
             .catch(e => msg.reply('error start mission ' + JSON.stringify(e)))
         ;
@@ -22,7 +22,7 @@ class Quest extends ServiceCommand
 
     stop(command: Command, msg) {
         command.pm
-            .stopService(msg.author.id, Service.Quest)
+            .stopService(msg.author.id, Service.Mission)
             .then(() => msg.reply('mission stop'))
             .catch(e => msg.reply('error stop mission ' + JSON.stringify(e)))
         ;
@@ -30,8 +30,8 @@ class Quest extends ServiceCommand
 
     restart(command: Command, msg) {
         command.pm
-            .stopService(msg.author.id, Service.Quest)
-            .then(() => command.pm.startService(msg.author.id, Service.Quest))
+            .stopService(msg.author.id, Service.Mission)
+            .then(() => command.pm.startService(msg.author.id, Service.Mission))
             .then(() => msg.reply('mission restart'))
             .catch(e => msg.reply('error restart mission ' + JSON.stringify(e)))
         ;
@@ -42,4 +42,4 @@ class Quest extends ServiceCommand
     }
 }
 
-export default new Quest();
+export default new Mission();

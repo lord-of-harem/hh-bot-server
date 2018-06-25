@@ -1,5 +1,5 @@
 
-export interface Quest {
+export interface Mission {
     id_member_mission: number;
     id_mission: number;
     duration: number | null;

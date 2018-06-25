@@ -21,7 +21,7 @@ export default class ShopService extends PlayerService
         return this.game
             .getShop()
             .then(timeout => {
-                console.log('check shop');
+                this.event.emit('shop:check');
                 this.timeout = setTimeout(() => this.restart(checkInterval), timeout * 1000);
                 this.interval = setTimeout(() => this.restart(checkInterval), checkInterval * 60 * 1000);
             })

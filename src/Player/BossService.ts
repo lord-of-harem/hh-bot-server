@@ -16,11 +16,11 @@ export default class BossService extends PlayerService
             .then(res => {
                 for ( let drop of res.drops ) {
                     if ( drop.type === 'girl' ) {
-                        this.event.emit('drop:girl', drop)
+                        this.event.emit('boss:dropGirl', drop);
                     }
                 }
 
-                console.log('fight boss');
+                this.event.emit('boss:fight', bossId);
                 return this.start(bossId);
             })
             .catch(() => this.timeout = setTimeout(() => this.restart(bossId), 10 * 60000))
@@ -32,6 +32,6 @@ export default class BossService extends PlayerService
 
     stop() {
         clearTimeout(this.timeout);
-        this.currentStatus = Status.Stopped
+        this.currentStatus = Status.Stopped;
     }
 }

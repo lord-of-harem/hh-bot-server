@@ -11,7 +11,7 @@ export default class HaremService extends PlayerService
 
         this.girlsMoney = new Map();
 
-        this.event.on('drop:girl', () => {
+        this.event.on('boss:dropGirl', () => {
             if ( this.status() === Status.Started ) {
                 this.restart();
             }
@@ -47,7 +47,7 @@ export default class HaremService extends PlayerService
             this.game.getMoney(girlId)
                 .then(salary => {
                     this.getMoney(girlId, salary.time * 1000);
-                    console.log('Girl ID', girlId, 'Salary', salary.money);
+                    this.event.emit('harem:getMoney', girlId, salary.money);
                 })
                 .catch(e => {
                     console.error(e);

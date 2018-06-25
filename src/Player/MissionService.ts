@@ -1,11 +1,11 @@
 import { PlayerService, Status } from './PlayerService';
 import Game from '../Game';
-import { Quest } from '../models/Quest';
+import { Mission } from '../models/Mission';
 import { EventEmitter } from 'events';
 
-export default class QuestService extends PlayerService
+export default class MissionService extends PlayerService
 {
-    private currentQuest = null;
+    private currentMission = null;
     private reload = null;
 
     constructor(private game: Game, private event: EventEmitter) {
@@ -17,18 +17,17 @@ export default class QuestService extends PlayerService
             .then(contest => {
                 this.reload = setTimeout(() => this.restart(), contest.nextUpdate * 1000);
 
-                let questRun: Quest | null = null;
+                let missionRun: Mission | null = null;
 
                 for ( const quest of contest.quests ) {
                     if ( quest.remaining_time !== null && quest.remaining_time > 0 ) {
-                        questRun = quest;
+                        missionRun = quest;
                     }
                 }
 
                 // Si une mission est en cour
-                if ( questRun !== null ) {
-                    console.log('wait');
-                    this.currentQuest = setTimeout(() => this.restart().catch(console.error), questRun.remaining_time * 1000);
+                if ( missionRun !== null ) {
+                    this.currentMission = setTimeout(() => this.restart().catch(console.error), missionRun.remaining_time * 1000);
                 }
 
                 // Si aucune mission n'est en cour
@@ -36,7 +35,7 @@ export default class QuestService extends PlayerService
                     for ( const quest of contest.quests ) {
                         // Si la mission est a executée
                         if ( quest.remaining_time === null ) {
-                            return this.launchQuest(quest);
+                            return this.launchMission(quest);
                         }
                     }
                 }
@@ -51,21 +50,22 @@ export default class QuestService extends PlayerService
     }
 
     stop() {
-        clearTimeout(this.currentQuest);
+        clearTimeout(this.currentMission);
         clearTimeout(this.reload);
         this.currentStatus = Status.Stopped;
     }
 
     /**
      * Lance une quête
-     * @param {Quest} quest
+     * @param {Mission} mission
      */
-    private launchQuest(quest: Quest) {
-        console.log('launch quest');
-
+    private launchMission(mission: Mission) {
         return this.game
-            .launchQuest(quest)
-            .then(() => this.start())
+            .launchMission(mission)
+            .then(() => {
+                this.event.emit('mission:launch', mission.id_mission);
+                this.start();
+            })
             .catch(console.error)
         ;
     }

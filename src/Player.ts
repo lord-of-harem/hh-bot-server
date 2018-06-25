@@ -1,7 +1,7 @@
 import Game from './Game';
 import { PlayerServiceInterface } from './Player/PlayerService';
 import HaremService from './Player/HaremService';
-import QuestService from './Player/QuestService';
+import MissionService from './Player/MissionService';
 import PvpService from './Player/PvpService';
 import BossService from './Player/BossService';
 import ShopService from './Player/ShopService';
@@ -9,7 +9,7 @@ import { EventEmitter } from 'events';
 import PachinkoService from './Player/PachinkoService';
 
 export enum Command {Start, Stop, Restart}
-export enum Service {Harem, Quest, Pvp, Boss, Shop, Pachinko}
+export enum Service {Harem, Mission, Pvp, Boss, Shop, Pachinko}
 
 export default class Player
 {
@@ -24,7 +24,7 @@ export default class Player
         this.initEventService();
 
         this.services.set(Service.Harem, new HaremService(this.game, this.event));
-        this.services.set(Service.Quest, new QuestService(this.game, this.event));
+        this.services.set(Service.Mission, new MissionService(this.game, this.event));
         this.services.set(Service.Pvp, new PvpService(this.game, this.event));
         this.services.set(Service.Boss, new BossService(this.game, this.event));
         this.services.set(Service.Shop, new ShopService(this.game, this.event));
@@ -74,7 +74,13 @@ export default class Player
 
     private initEventService() {
         this.event
-            .on('drop:girl', () => {})
+            .on('boss:dropGirl', drop => {console.log('boss:dropGirl', drop)})
+            .on('boss:fight', bossId => {console.log('boss:fight', bossId)})
+            .on('harem:getMoney', (girlId, money) => {console.log('harem:getMoney', girlId, money)})
+            .on('mission:launch', missionId => {console.log('mission:launch', missionId)})
+            .on('pachinko:freeReward', () => {console.log('pachinko:freeReward')})
+            .on('pvp:fight', () => {console.log('pvp:fight')})
+            .on('shop:check', () => {console.log('shop:check')})
         ;
     }
 }

@@ -39,9 +39,8 @@ export default class PvpService extends PlayerService
      * Lance un combat contre un adversaire
      */
     private fight(opponent: Opponent) {
-        console.log('fight');
-
         return this.game.fight(opponent)
+            .then(() => this.event.emit('pvp:fight'))
             .catch(e => {
                 console.error(e);
             })

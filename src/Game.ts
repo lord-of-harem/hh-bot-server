@@ -1,10 +1,9 @@
 import * as request from 'request-promise-native';
-import * as tough from 'tough-cookie';
 import * as cheerio from 'cheerio';
 import * as url from 'url';
 import * as querystring from 'querystring';
 import { Script } from 'vm';
-import { Quest } from './models/Quest';
+import { Mission } from './models/Mission';
 import { Salary } from './models/Salary';
 import { GirlHarem } from './models/GirlHarem';
 import { Opponent } from './models/Opponent';
@@ -177,7 +176,7 @@ export default class Game {
     /**
      * Lance une mission
      */
-    public launchQuest(quest: Quest) {
+    public launchMission(mission: Mission) {
         return request({
             method: 'POST',
             uri: `${this.host}/ajax.php`,
@@ -185,14 +184,14 @@ export default class Game {
             form: {
                 class: 'Missions',
                 action: 'start_mission',
-                id_mission: quest.id_mission,
-                id_member_mission: quest.id_member_mission,
+                id_mission: mission.id_mission,
+                id_member_mission: mission.id_member_mission,
             },
             json: true,
         })
             .then(res => {
                 if ( !res.success ) {
-                    return Promise.reject(new Error('Quest not launched'));
+                    return Promise.reject(new Error('Mission not launched'));
                 }
 
                 return res;
