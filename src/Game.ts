@@ -29,12 +29,13 @@ export default class Game {
     /**
      * Authentifie l'utilisateur auprès du jeu
      */
-    public login(username: string, password: string) {
-        return request({
+    public async login(username: string, password: string): Promise<any> {
+        await request({
             uri: `${this.host}/home.html`,
             jar: this.jar,
-        })
-            .then(() => request({
+        });
+
+        let res = await request({
                 method: 'POST',
                 uri: `${this.host}/phoenix-ajax.php`,
                 jar: this.jar,
@@ -47,18 +48,16 @@ export default class Game {
                     call: 'Member',
                 },
                 json: true,
-            }))
-            .then(response => {
-                if ( !response.success ) {
-                    return Promise.reject("Login error\n" + response.error);
-                }
+            });
 
-                return request({
-                    uri: `${this.host}/home.html`,
-                    jar: this.jar,
-                });
-            })
-        ;
+        if ( !res.success ) {
+            return Promise.reject("Login error\n" + res.error);
+        }
+
+        return request({
+            uri: `${this.host}/home.html`,
+            jar: this.jar,
+        });
     }
 
     /**
@@ -74,37 +73,37 @@ export default class Game {
     /**
      * Récupère la liste des filles dans le harem du joueur
      */
-    public getHarem(): Promise<Array<GirlHarem>> {
-        return request({
+    public async getHarem(): Promise<Array<GirlHarem>> {
+        let res = await request({
             uri: `${this.host}/harem.html`,
             jar: this.jar,
-        })
-            .then(res => {
-                const $ = cheerio.load(res);
-                const data: any = {};
+        });
 
-                try {
-                    function Girl(girl) {
-                        return girl;
-                    }
+        const $ = cheerio.load(res);
+        const data: any = {};
 
-                    const script = new Script(Girl.toString() + $('body script').get()[0].children[0].data);
-                    script.runInNewContext(data);
-                } catch (e) {
-                    return Promise.reject(e);
-                }
+        try {
+            function Girl(girl) {
+                return girl;
+            }
 
-                const girls = Object.keys(data.girlsDataList).map(key => Object.assign(data.girlsDataList[key], {id: key}))
-                return girls.filter(girl => girl.hasOwnProperty('pay_time'));
-            })
-        ;
+            const script = new Script(Girl.toString() + $('body script').get()[0].children[0].data);
+            script.runInNewContext(data);
+        } catch (e) {
+            return Promise.reject(e);
+        }
+
+        const girls = Object.keys(data.girlsDataList)
+            .map(key => Object.assign(data.girlsDataList[key], {id: key}));
+
+        return girls.filter(girl => girl.hasOwnProperty('pay_time'));
     }
 
     /**
      * Récupère l'argent d'une fille
      */
-    public getMoney(girl: number): Promise<Salary> {
-        return request({
+    public async getMoney(girl: number): Promise<Salary> {
+        let res = await request({
             method: 'POST',
             uri: `${this.host}/ajax.php`,
             jar: this.jar,
@@ -114,70 +113,68 @@ export default class Game {
                 action: 'get_salary',
             },
             json: true,
-        })
-            .then(res => {
-                if ( !res.success ) {
-                    return Promise.reject(new Error('no money'));
-                }
+        });
 
-                return res;
-            });
+        if ( !res.success ) {
+            return Promise.reject(new Error('no money'));
+        }
+
+        return res;
     }
 
     /**
      * Récupère la liste des missions du joueur
      */
-    public getQuests(): Promise<Contest> {
-        return request({
+    public async getMissions(): Promise<Contest> {
+        let res = await request({
             method: 'GET',
             uri: `${this.host}/activities.html?tab=missions`,
             jar: this.jar,
-        })
-            .then(res => {
-                const $ = cheerio.load(res);
-                const contest: Contest = {
-                    quests: [],
-                    nextUpdate: 0,
-                };
+        });
 
-                $(`.missions_wrap .mission_object`).each((index, elt) => {
-                    const quest = JSON.parse($(elt).attr('data-d'));
+        const $ = cheerio.load(res);
+        const contest: Contest = {
+            quests: [],
+            nextUpdate: 0,
+        };
 
-                    quest.duration = parseInt(quest.duration, 10);
-                    quest.cost = parseInt(quest.cost, 10);
-                    quest.id_member_mission = parseInt(quest.id_member_mission, 10);
-                    quest.id_mission = parseInt(quest.id_mission, 10);
-                    quest.remaining_time = quest.remaining_time === null ? null : parseInt(quest.remaining_time, 10);
+        $(`.missions_wrap .mission_object`).each((index, elt) => {
+            const quest = JSON.parse($(elt).attr('data-d'));
 
-                    contest.quests.push(quest);
-                });
+            quest.duration = parseInt(quest.duration, 10);
+            quest.cost = parseInt(quest.cost, 10);
+            quest.id_member_mission = parseInt(quest.id_member_mission, 10);
+            quest.id_mission = parseInt(quest.id_mission, 10);
+            quest.remaining_time = quest.remaining_time === null ? null : parseInt(quest.remaining_time, 10);
 
-                contest.quests.sort((a, b) => {
-                    if ( a.duration > b.duration ) return 1;
-                    if ( a.duration < b.duration ) return -1;
+            contest.quests.push(quest);
+        });
 
-                    return 0;
-                });
+        contest.quests.sort((a, b) => {
+            if ( a.duration > b.duration ) return 1;
+            if ( a.duration < b.duration ) return -1;
 
-                try {
-                    const data: any = {};
-                    const script = new Script($('body script').get()[0].children[0].data);
-                    script.runInNewContext(data);
+            return 0;
+        });
 
-                    contest.nextUpdate = data.next_update;
-                } catch (e) {
-                    return Promise.reject(new Error(e));
-                }
+        try {
+            const data: any = {};
+            const script = new Script($('body script').get()[0].children[0].data);
+            script.runInNewContext(data);
 
-                return contest;
-            });
+            contest.nextUpdate = data.next_update;
+        } catch (e) {
+            return Promise.reject(new Error(e));
+        }
+
+        return contest;
     }
 
     /**
      * Lance une mission
      */
-    public launchMission(mission: Mission) {
-        return request({
+    public async launchMission(mission: Mission) {
+        let res = await request({
             method: 'POST',
             uri: `${this.host}/ajax.php`,
             jar: this.jar,
@@ -188,121 +185,115 @@ export default class Game {
                 id_member_mission: mission.id_member_mission,
             },
             json: true,
-        })
-            .then(res => {
-                if ( !res.success ) {
-                    return Promise.reject(new Error('Mission not launched'));
-                }
+        });
 
-                return res;
-            });
+        if ( !res.success ) {
+            return Promise.reject(new Error('Mission not launched'));
+        }
+
+        return res;
     }
 
     /**
      * Récupère la liste des combattants
      */
-    public getPvpOpponents(): Promise<Arena> {
-        return request({
+    public async getPvpOpponents(): Promise<Arena> {
+        let res = await request({
             method: 'GET',
             uri: `${this.host}/arena.html`,
             jar: this.jar,
-        })
-            .then(res => {
-                const $res = cheerio.load(res);
-                const arena: Arena = {
-                    opponents: [],
-                    timeout: 0,
-                };
+        });
 
-                $res(`.one_opponent`).each((index, elt) => {
-                    const $opponent = $res(elt);
-                    const opponent: Opponent = {
-                        enable: !$opponent.hasClass('disabled'),
-                        lvl: parseInt($opponent.find('.level_target:first-child').text(), 10),
-                        name: $opponent.find('.name').text().trim(),
-                        id_arena: parseInt(querystring.parse(url.parse($opponent.attr('href')).query).id_arena)
-                    };
+        const $res = cheerio.load(res);
+        const arena: Arena = {
+            opponents: [],
+            timeout: 0,
+        };
 
-                    arena.opponents.push(opponent);
-                });
+        $res(`.one_opponent`).each((index, elt) => {
+            const $opponent = $res(elt);
+            const opponent: Opponent = {
+                enable: !$opponent.hasClass('disabled'),
+                lvl: parseInt($opponent.find('.level_target:first-child').text(), 10),
+                name: $opponent.find('.name').text().trim(),
+                id_arena: parseInt(querystring.parse(url.parse($opponent.attr('href')).query).id_arena)
+            };
 
-                const data: any = {};
-                let timer: any;
+            arena.opponents.push(opponent);
+        });
 
-                function $($data) {
-                    if ( typeof $data === "function" ) {
-                        $data();
-                    }
+        const data: any = {};
+        let timer: any;
 
-                    return {on: function() {}, name: $data};
-                }
+        function $($data) {
+            if ( typeof $data === "function" ) {
+                $data();
+            }
 
-                function dec_timer(elt, time) {
-                    timer[elt.name] = time;
-                }
+            return {on: function() {}, name: $data};
+        }
 
-                /*try {
-                    const script = new Script($.toString()
-                        + dec_timer.toString()
-                        + 'var reload; var timer = {};'
-                        + $res('body script').get()[2].children[0].data);
-                    script.runInNewContext(data);
+        function dec_timer(elt, time) {
+            timer[elt.name] = time;
+        }
 
-                    arena.timeout = data.timer['.arena_refresh_counter [rel="count"]'];
-                } catch (e) {
-                    return Promise.reject(new Error(e));
-                }*/
+        /*try {
+            const script = new Script($.toString()
+                + dec_timer.toString()
+                + 'var reload; var timer = {};'
+                + $res('body script').get()[2].children[0].data);
+            script.runInNewContext(data);
 
-                arena.timeout = 5 * 60;
+            arena.timeout = data.timer['.arena_refresh_counter [rel="count"]'];
+        } catch (e) {
+            return Promise.reject(new Error(e));
+        }*/
 
-                return arena;
-            });
+        arena.timeout = 5 * 60;
+
+        return arena;
     }
 
     /**
      * Lance un combat contre un autre joueur
      */
-    public fight(opponent: Opponent) {
-        return request({
+    public async fight(opponent: Opponent) {
+        let res = request({
             method: 'GET',
             uri: `${this.host}/battle.html?id_arena=${opponent.id_arena}`,
             jar: this.jar,
-        })
-            .then(res => {
-                const $ = cheerio.load(res);
-                const data: any = {};
+        });
 
-                const script = new Script($('body script').get()[2].children[0].data);
-                script.runInNewContext(data);
+        const $ = cheerio.load(res);
+        const data: any = {};
 
-                return data.hh_battle_players[1];
-            })
-            .then(who => request({
-                method: 'POST',
-                uri: `${this.host}/ajax.php`,
-                jar: this.jar,
-                form: {
-                    class: 'Battle',
-                    action: 'fight',
-                    who: who,
-                },
-                json: true,
-            }))
-            .then(res => {
-                if ( !res.success ) {
-                    return Promise.reject(new Error('Fight no launched'));
-                }
+        const script = new Script($('body script').get()[2].children[0].data);
+        script.runInNewContext(data);
 
-                return res;
-            })
-        ;
+        res = await request({
+            method: 'POST',
+            uri: `${this.host}/ajax.php`,
+            jar: this.jar,
+            form: {
+                class: 'Battle',
+                action: 'fight',
+                who: data.hh_battle_players[1],
+            },
+            json: true,
+        });
+
+        if ( !res.success ) {
+            return Promise.reject(new Error('Fight no launched'));
+        }
+
+        return res;
     }
 
     /**
      * Lance un combat contre un boss
      */
-    public fightBoss(bossId: number) {
-        return request({
+    public async fightBoss(bossId: number) {
+        let res = await request({
             method: 'POST',
             uri: `${this.host}/ajax.php`,
             jar: this.jar,
@@ -321,79 +312,73 @@ export default class Game {
                 },
             },
             json: true,
-        })
-            .then(res => {
-                if ( !res.success ) {
-                    return Promise.reject(new Error('Boss no fighted'));
-                }
+        });
 
-                res.drops = [];
-                const $ = cheerio.load('<div>' + res.end.drops + '</div>');
+        if ( !res.success ) {
+            return Promise.reject(new Error('Boss no fighted'));
+        }
 
-                $('.slot').each((index, drop) => {
-                    const $drop = $(drop);
+        res.drops = [];
+        const $ = cheerio.load('<div>' + res.end.drops + '</div>');
 
-                    if ( $drop.hasClass('girl-slot') ) {
-                        res.drops.push({
-                            type: 'girl',
-                            id: parseInt($.find('img').attr('src').split('/')[3]),
-                            name: $.find('.title2 h1:first').text(),
-                        });
-                    }
+        $('.slot').each((index, drop) => {
+            const $drop = $(drop);
+
+            if ( $drop.hasClass('girl-slot') ) {
+                res.drops.push({
+                    type: 'girl',
+                    id: parseInt($.find('img').attr('src').split('/')[3]),
+                    name: $.find('.title2 h1:first').text(),
                 });
+            }
+        });
 
-                return res;
-            })
-        ;
+        return res;
     }
 
     /**
      * Renvoie le temps avant que le marché puisse être renouvellé
      */
-    public getShop(): Promise<number> {
-        return request({
+    public async getShop(): Promise<number> {
+        let res = await request({
             uri: `${this.host}/shop.html`,
             jar: this.jar,
-        })
-            .then(res => {
-                const $ = cheerio.load(res);
+        });
 
-                return parseInt($(`#shop .shop_count span`).attr('time'), 10);
-            })
-        ;
+        const $ = cheerio.load(res);
+
+        return parseInt($(`#shop .shop_count span`).attr('time'), 10);
     }
 
     /**
      * Renvoie le temps avant que le pachinko gratuit soie jouable
      */
-    public getPachinko(): Promise<number> {
-        return request({
+    public async getPachinko(): Promise<number> {
+        let res = await request({
             uri: `${this.host}/pachinko.html`,
             jar: this.jar,
-        })
-            .then(res => {
-                const $ = cheerio.load(res);
-                const data: any = {};
+        });
 
-                try {
-                    function ph_tooltip() {}
+        const $ = cheerio.load(res);
+        const data: any = {};
 
-                    const script = new Script(ph_tooltip.toString() + 'var window = {};' + $('body script').get()[0].children[0].data);
-                    script.runInNewContext(data);
-                } catch (e) {
-                    return Promise.reject(new Error(e));
-                }
+        try {
+            function ph_tooltip() {}
 
-                return data.pachinko_var.next_game;
-            })
-        ;
+            const script = new Script(ph_tooltip.toString() + 'var window = {};' + $('body script').get()[0].children[0].data);
+            script.runInNewContext(data);
+        } catch (e) {
+            return Promise.reject(new Error(e));
+        }
+
+        return data.pachinko_var.next_game;
     }
 
     /**
      * Récupère la récompense gratuite au pachinko
      */
-    public claimRewardPachinko(): Promise<any> {
-        return request({
+    public async claimRewardPachinko(): Promise<any> {
+        let res = await request({
             method: 'POST',
             uri: `${this.host}/ajax.php`,
             jar: this.jar,
@@ -404,14 +389,12 @@ export default class Game {
                 how_many: 1,
             },
             json: true,
-        })
-            .then(res => {
-                if ( !res.success ) {
-                    return Promise.reject(new Error('Reward not claimed'));
-                }
+        });
 
-                return res;
-            })
-        ;
+        if ( !res.success ) {
+            return Promise.reject(new Error('Reward not claimed'));
+        }
+
+        return res;
     }
 }

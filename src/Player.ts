@@ -53,7 +53,7 @@ export default class Player
     /**
      * Authentifie le joueur si nécéssaire
      */
-    login() {
+    login(): Promise<any> {
         if ( this.isLogged ) {
             return Promise.resolve();
         }

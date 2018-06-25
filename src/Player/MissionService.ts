@@ -13,7 +13,7 @@ export default class MissionService extends PlayerService
     }
 
     start(): Promise<any> {
-        return this.game.getQuests()
+        return this.game.getMissions()
             .then(contest => {
                 this.reload = setTimeout(() => this.restart(), contest.nextUpdate * 1000);
 
