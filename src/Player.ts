@@ -18,8 +18,8 @@ export default class Player
     private services: Map<number, PlayerServiceInterface> = new Map();
     private event: EventEmitter;
 
-    constructor(private username: string, private password: string) {
-        this.game = new Game();
+    constructor(server: string, private username: string, private password: string) {
+        this.game = new Game(server);
         this.event = new EventEmitter();
         this.initEventService();
 
@@ -53,12 +53,23 @@ export default class Player
     /**
      * Authentifie le joueur si nécéssaire
      */
-    private login() {
+    login() {
         if ( this.isLogged ) {
             return Promise.resolve();
         }
 
-        return this.game.login(this.username, this.password);
+        return this.game
+            .login(this.username, this.password)
+            .then(() => this.isLogged = true)
+        ;
+    }
+
+    logout() {
+        if ( !this.isLogged ) {
+            return Promise.resolve();
+        }
+
+        return this.game.logout();
     }
 
     private initEventService() {
