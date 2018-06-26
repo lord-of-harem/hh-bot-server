@@ -241,7 +241,11 @@ export default class Game {
 
             arena.timeout = data.timer;
         } catch (e) {
-            return Promise.reject(new Error(e));
+            console.error(e);
+
+            return new Promise(resolve => {
+                setTimeout(() => resolve(this.getPvpOpponents()), 1000);
+            }) as Promise<Arena>;
         }
 
         return arena;

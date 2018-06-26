@@ -11,25 +11,10 @@ export default class PvpService extends PlayerService
         super();
     }
 
-    start(): Promise<any> {
-        return this.game.getPvpOpponents()
-            .then(arena => {
-                this.event.emit('pvp:start');
-
-                for ( let opponent of arena.opponents ) {
-                    if ( opponent.enable ) {
-                        this.fight(opponent);
-                    }
-                }
-
-                this.pvp = setTimeout(() => this.restart(), arena.timeout * 1000);
-                this.currentStatus = Status.Started;
-            })
-            .catch(e => {
-                console.error(e);
-                this.restart();
-            })
-        ;
+    async start(): Promise<any> {
+        this.currentStatus = Status.Started;
+        this.event.emit('pvp:start');
+        this.exec();
     }
 
     stop() {
@@ -38,15 +23,36 @@ export default class PvpService extends PlayerService
         this.event.emit('pvp:stop');
     }
 
+    private async exec() {
+        try {
+            const arena = await this.game.getPvpOpponents();
+
+            for (let opponent of arena.opponents) {
+                if (opponent.enable) {
+                    await this.fight(opponent);
+                }
+            }
+
+            this.pvp = setTimeout(() => this.exec(), arena.timeout * 1000);
+        }
+
+        catch(e) {
+            console.error(e);
+            this.restart();
+        }
+    }
+
     /**
      * Lance un combat contre un adversaire
      */
-    private fight(opponent: Opponent) {
-        return this.game.fight(opponent)
-            .then(() => this.event.emit('pvp:fight'))
-            .catch(e => {
-                console.error(e);
-            })
-        ;
+    private async fight(opponent: Opponent) {
+        try {
+            await this.game.fight(opponent);
+            this.event.emit('pvp:fight');
+        }
+
+        catch (e) {
+            console.error(e);
+        }
     }
 }

@@ -5,29 +5,17 @@ import { EventEmitter } from 'events';
 export default class BossService extends PlayerService
 {
     private timeout = null;
+    private bossId: number;
 
     constructor(private game: Game, private event: EventEmitter) {
         super();
     }
 
     start(bossId: number): Promise<any> {
-        this.game
-            .fightBoss(bossId)
-            .then(res => {
-                for ( let drop of res.drops ) {
-                    if ( drop.type === 'girl' ) {
-                        this.event.emit('boss:dropGirl', drop);
-                    }
-                }
-
-                this.event.emit('boss:fight', bossId);
-                return this.start(bossId);
-            })
-            .catch(() => this.timeout = setTimeout(() => this.restart(bossId), 10 * 60000))
-        ;
-
+        this.bossId = bossId;
         this.currentStatus = Status.Started;
         this.event.emit('boss:start');
+        this.exec();
         return Promise.resolve();
     }
 
@@ -35,5 +23,24 @@ export default class BossService extends PlayerService
         clearTimeout(this.timeout);
         this.currentStatus = Status.Stopped;
         this.event.emit('boss:stop');
+    }
+
+    private async exec() {
+        try {
+            const res = await this.game.fightBoss(this.bossId);
+
+            for (let drop of res.drops) {
+                if (drop.type === 'girl') {
+                    this.event.emit('boss:dropGirl', drop);
+                }
+            }
+
+            this.event.emit('boss:fight', this.bossId);
+            return this.exec();
+        }
+
+        catch (e) {
+            this.timeout = setTimeout(() => this.exec(), 10 * 60000)
+        }
     }
 }

@@ -12,42 +12,10 @@ export default class MissionService extends PlayerService
         super();
     }
 
-    start(): Promise<any> {
-        return this.game.getMissions()
-            .then(contest => {
-                this.reload = setTimeout(() => this.restart(), contest.nextUpdate * 1000);
-
-                let missionRun: Mission | null = null;
-
-                for ( const quest of contest.quests ) {
-                    if ( quest.remaining_time !== null && quest.remaining_time > 0 ) {
-                        missionRun = quest;
-                    }
-                }
-
-                // Si une mission est en cour
-                if ( missionRun !== null ) {
-                    this.currentMission = setTimeout(() => this.restart().catch(console.error), missionRun.remaining_time * 1000);
-                }
-
-                // Si aucune mission n'est en cour
-                else {
-                    for ( const quest of contest.quests ) {
-                        // Si la mission est a executée
-                        if ( quest.remaining_time === null ) {
-                            return this.launchMission(quest);
-                        }
-                    }
-                }
-
-                this.currentStatus = Status.Started;
-                this.event.emit('mission:start');
-            })
-            .catch(e => {
-                console.error(e);
-                this.restart();
-            })
-        ;
+    async start(): Promise<any> {
+        this.currentStatus = Status.Started;
+        this.event.emit('mission:start');
+        this.exec();
     }
 
     stop() {
@@ -57,18 +25,54 @@ export default class MissionService extends PlayerService
         this.event.emit('mission:stop');
     }
 
+    private async exec() {
+        try {
+            let contest = await this.game.getMissions();
+            let missionRun: Mission | null = null;
+
+            this.reload = setTimeout(() => this.exec(), contest.nextUpdate * 1000);
+
+            for (const quest of contest.quests) {
+                if (quest.remaining_time !== null && quest.remaining_time > 0) {
+                    missionRun = quest;
+                }
+            }
+
+            // Si une mission est en cour
+            if (missionRun !== null) {
+                this.currentMission = setTimeout(() => this.exec(), missionRun.remaining_time * 1000);
+            }
+
+            // Si aucune mission n'est en cour
+            else {
+                for (const quest of contest.quests) {
+                    // Si la mission est a executée
+                    if (quest.remaining_time === null) {
+                        return this.launchMission(quest);
+                    }
+                }
+            }
+        }
+
+        catch (e) {
+            console.error(e);
+            this.restart();
+        }
+    }
+
     /**
      * Lance une quête
      * @param {Mission} mission
      */
-    private launchMission(mission: Mission) {
-        return this.game
-            .launchMission(mission)
-            .then(() => {
-                this.event.emit('mission:launch', mission.id_mission);
-                this.start();
-            })
-            .catch(console.error)
-        ;
+    private async launchMission(mission: Mission) {
+        try {
+            await this.game.launchMission(mission);
+            this.event.emit('mission:launch', mission.id_mission);
+            this.exec();
+        }
+
+        catch (e) {
+            console.error(e);
+        }
     }
 }
