@@ -52,7 +52,8 @@ export default class HaremService extends PlayerService
                     this.event.emit('harem:getMoney', girlId, salary.money);
                 })
                 .catch(e => {
-                    console.error(e);
+                    this.getMoney(girlId, e.time * 1000);
+                    console.error('no money');
                 })
         }, timeout));
     }
