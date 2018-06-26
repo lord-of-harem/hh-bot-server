@@ -258,7 +258,7 @@ export default class Game {
      * Lance un combat contre un autre joueur
      */
     public async fight(opponent: Opponent) {
-        let res = request({
+        let res = await request({
             method: 'GET',
             uri: `${this.host}/battle.html?id_arena=${opponent.id_arena}`,
             jar: this.jar,
