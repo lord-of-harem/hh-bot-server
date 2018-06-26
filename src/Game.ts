@@ -116,7 +116,7 @@ export default class Game {
         });
 
         if ( !res.success ) {
-            return Promise.reject(res);
+            return Promise.reject(new Error('no money'));
         }
 
         return res;
