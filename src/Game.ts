@@ -223,7 +223,6 @@ export default class Game {
         });
 
         const data: any = {};
-        let timer: any;
 
         function $($data) {
             if ( typeof $data === "function" ) {
@@ -233,23 +232,17 @@ export default class Game {
             return {on: function() {}, name: $data};
         }
 
-        function dec_timer(elt, time) {
-            timer[elt.name] = time;
-        }
-
-        /*try {
+        try {
             const script = new Script($.toString()
-                + dec_timer.toString()
-                + 'var reload; var timer = {};'
+                + 'var reload; var timer = {}; '
+                + 'var HHTimers = {initDecTimer: function(a, time) {timer = time;}}'
                 + $res('body script').get()[2].children[0].data);
             script.runInNewContext(data);
 
-            arena.timeout = data.timer['.arena_refresh_counter [rel="count"]'];
+            arena.timeout = data.timer;
         } catch (e) {
             return Promise.reject(new Error(e));
-        }*/
-
-        arena.timeout = 5 * 60;
+        }
 
         return arena;
     }
@@ -365,7 +358,9 @@ export default class Game {
         try {
             function ph_tooltip() {}
 
-            const script = new Script(ph_tooltip.toString() + 'var window = {};' + $('body script').get()[0].children[0].data);
+            const script = new Script(ph_tooltip.toString()
+                + 'var window = {};'
+                + $('body script').get()[0].children[0].data);
             script.runInNewContext(data);
         } catch (e) {
             return Promise.reject(new Error(e));
