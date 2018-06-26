@@ -14,6 +14,8 @@ export default class PvpService extends PlayerService
     start(): Promise<any> {
         return this.game.getPvpOpponents()
             .then(arena => {
+                this.event.emit('pvp:start');
+
                 for ( let opponent of arena.opponents ) {
                     if ( opponent.enable ) {
                         this.fight(opponent);
@@ -33,6 +35,7 @@ export default class PvpService extends PlayerService
     stop() {
         clearTimeout(this.pvp);
         this.currentStatus = Status.Stopped;
+        this.event.emit('pvp:stop');
     }
 
     /**

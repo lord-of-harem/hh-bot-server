@@ -27,11 +27,13 @@ export default class BossService extends PlayerService
         ;
 
         this.currentStatus = Status.Started;
+        this.event.emit('boss:start');
         return Promise.resolve();
     }
 
     stop() {
         clearTimeout(this.timeout);
         this.currentStatus = Status.Stopped;
+        this.event.emit('boss:stop');
     }
 }

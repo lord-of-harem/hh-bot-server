@@ -41,6 +41,7 @@ export default class MissionService extends PlayerService
                 }
 
                 this.currentStatus = Status.Started;
+                this.event.emit('mission:start');
             })
             .catch(e => {
                 console.error(e);
@@ -53,6 +54,7 @@ export default class MissionService extends PlayerService
         clearTimeout(this.currentMission);
         clearTimeout(this.reload);
         this.currentStatus = Status.Stopped;
+        this.event.emit('mission:stop');
     }
 
     /**

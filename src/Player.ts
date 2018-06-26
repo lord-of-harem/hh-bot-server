@@ -74,13 +74,25 @@ export default class Player
 
     private initEventService() {
         this.event
-            .on('boss:dropGirl', drop => {console.log('boss:dropGirl', drop)})
-            .on('boss:fight', bossId => {console.log('boss:fight', bossId)})
-            .on('harem:getMoney', (girlId, money) => {console.log('harem:getMoney', girlId, money)})
-            .on('mission:launch', missionId => {console.log('mission:launch', missionId)})
-            .on('pachinko:freeReward', () => {console.log('pachinko:freeReward')})
-            .on('pvp:fight', () => {console.log('pvp:fight')})
-            .on('shop:check', () => {console.log('shop:check')})
+            .on('boss:dropGirl', drop => console.log('boss:dropGirl', drop))
+            .on('boss:fight', bossId => console.log('boss:fight', bossId))
+            .on('harem:getMoney', (girlId, money) => console.log('harem:getMoney', girlId, money))
+            .on('mission:launch', missionId => console.log('mission:launch', missionId))
+            .on('pachinko:freeReward', () => console.log('pachinko:freeReward'))
+            .on('pvp:fight', () => console.log('pvp:fight'))
+            .on('shop:check', () => console.log('shop:check'))
+            .on('boss:start', () => console.log('boss:start'))
+            .on('boss:stop', () => console.log('boss:stop'))
+            .on('harem:start', () => console.log('harem:start'))
+            .on('harem:stop', () => console.log('harem:stop'))
+            .on('mission:start', () => console.log('mission:start'))
+            .on('mission:stop', () => console.log('mission:stop'))
+            .on('pachinko:start', () => console.log('pachinko:start'))
+            .on('pachinko:stop', () => console.log('pachinko:stop'))
+            .on('pvp:start', () => console.log('pvp:start'))
+            .on('pvp:stop', () => console.log('pvp:stop'))
+            .on('shop:start', () => console.log('shop:start'))
+            .on('shop:stop', () => console.log('shop:stop'))
         ;
     }
 }

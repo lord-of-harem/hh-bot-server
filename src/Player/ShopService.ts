@@ -21,6 +21,7 @@ export default class ShopService extends PlayerService
         return this.game
             .getShop()
             .then(timeout => {
+                this.event.emit('shop:start');
                 this.event.emit('shop:check');
                 this.timeout = setTimeout(() => this.restart(checkInterval), timeout * 1000);
                 this.interval = setTimeout(() => this.restart(checkInterval), checkInterval * 60 * 1000);
@@ -32,5 +33,6 @@ export default class ShopService extends PlayerService
         clearTimeout(this.timeout);
         clearTimeout(this.interval);
         this.currentStatus = Status.Stopped;
+        this.event.emit('shop:stop');
     }
 }

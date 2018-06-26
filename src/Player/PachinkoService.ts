@@ -15,6 +15,8 @@ export default class PachinkoService extends PlayerService
 
         return this.game.getPachinko()
             .then(timeout => {
+                this.event.emit('pachinko:start');
+
                 if ( timeout === 0 ) {
                     this.game
                         .claimRewardPachinko()
@@ -40,5 +42,6 @@ export default class PachinkoService extends PlayerService
     stop() {
         clearTimeout(this.timeout);
         this.currentStatus = Status.Stopped;
+        this.event.emit('pachinko:stop');
     }
 }

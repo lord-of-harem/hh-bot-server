@@ -26,6 +26,7 @@ export default class HaremService extends PlayerService
             .then(girls =>
                 girls.forEach(girl => this.getMoney(girl.id, girl.pay_in * 1000))
             )
+            .then(() => this.event.emit('harem:start'))
         ;
     }
 
@@ -35,6 +36,7 @@ export default class HaremService extends PlayerService
         }
 
         this.currentStatus = Status.Stopped;
+        this.event.emit('harem:stop');
     }
 
     /**
