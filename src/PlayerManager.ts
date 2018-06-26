@@ -41,7 +41,6 @@ export default class PlayerManager
             .then(() => {
                 pm.services.push({service: Service.Harem, args: []});
                 pm.services.push({service: Service.Mission, args: []});
-                pm.services.push({service: Service.Pvp, args: []});
                 pm.services.push({service: Service.Shop, args: [120]});
                 pm.services.push({service: Service.Pachinko, args: []});
 
