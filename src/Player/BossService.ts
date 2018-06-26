@@ -1,20 +1,19 @@
 import { PlayerService, Status } from './PlayerService';
-import Game from '../Game';
-import { EventEmitter } from 'events';
+import Player from '../Player';
 
 export default class BossService extends PlayerService
 {
     private timeout = null;
     private bossId: number;
 
-    constructor(private game: Game, private event: EventEmitter) {
+    constructor(private player: Player) {
         super();
     }
 
     start(bossId: number): Promise<any> {
         this.bossId = bossId;
         this.currentStatus = Status.Started;
-        this.event.emit('boss:start');
+        this.player.event.emit('boss:start');
         this.exec();
         return Promise.resolve();
     }
@@ -22,20 +21,20 @@ export default class BossService extends PlayerService
     stop() {
         clearTimeout(this.timeout);
         this.currentStatus = Status.Stopped;
-        this.event.emit('boss:stop');
+        this.player.event.emit('boss:stop');
     }
 
     private async exec() {
         try {
-            const res = await this.game.fightBoss(this.bossId);
+            const res = await this.player.game.fightBoss(this.bossId);
 
             for (let drop of res.drops) {
                 if (drop.type === 'girl') {
-                    this.event.emit('boss:dropGirl', drop);
+                    this.player.event.emit('boss:dropGirl', drop);
                 }
             }
 
-            this.event.emit('boss:fight', this.bossId);
+            this.player.event.emit('boss:fight', this.bossId);
             return this.exec();
         }
 

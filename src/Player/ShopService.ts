@@ -1,13 +1,12 @@
 import { PlayerService, Status } from './PlayerService';
-import Game from '../Game';
-import { EventEmitter } from 'events';
+import Player from "../Player";
 
 export default class ShopService extends PlayerService
 {
     private timeout;
     private interval;
 
-    constructor(private game: Game, private event: EventEmitter) {
+    constructor(private player: Player) {
         super();
     }
 
@@ -18,11 +17,11 @@ export default class ShopService extends PlayerService
     start(checkInterval: number): Promise<any> {
         this.currentStatus = Status.Started;
 
-        return this.game
+        return this.player.game
             .getShop()
             .then(timeout => {
-                this.event.emit('shop:start');
-                this.event.emit('shop:check');
+                this.player.event.emit('shop:start');
+                this.player.event.emit('shop:check');
                 this.timeout = setTimeout(() => this.restart(checkInterval), timeout * 1000);
                 this.interval = setTimeout(() => this.restart(checkInterval), checkInterval * 60 * 1000);
             })
@@ -33,6 +32,6 @@ export default class ShopService extends PlayerService
         clearTimeout(this.timeout);
         clearTimeout(this.interval);
         this.currentStatus = Status.Stopped;
-        this.event.emit('shop:stop');
+        this.player.event.emit('shop:stop');
     }
 }

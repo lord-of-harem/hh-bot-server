@@ -33,7 +33,7 @@ export default class PlayerManager
         return new Promise((resolve, reject) => this.playersDb.get(discordId)
             .then(() => reject('Player already exists'))
             .catch(() => {
-                let p = new Player(server, username, password);
+                let p = new Player(this.playersDb, server, username, password);
 
                 return p.login()
                     .then(() => p.logout());
@@ -101,7 +101,7 @@ export default class PlayerManager
     }
 
     private initPlayer(pm: PlayerModel) {
-        let p = new Player(pm.server, pm.username, pm.password);
+        let p = new Player(this.playersDb, pm.server, pm.username, pm.password);
         this.players.set(pm.discordId, p);
 
         for ( let s of pm.services ) {

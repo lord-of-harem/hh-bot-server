@@ -1,18 +1,17 @@
 import { PlayerService, Status } from './PlayerService';
-import Game from '../Game';
-import { EventEmitter } from 'events';
+import Player from "../Player";
 
 export default class PachinkoService extends PlayerService
 {
     private timeout;
 
-    constructor(private game: Game, private event: EventEmitter) {
+    constructor(private player: Player) {
         super();
     }
 
     start(): Promise<any> {
         this.currentStatus = Status.Started;
-        this.event.emit('pachinko:start');
+        this.player.event.emit('pachinko:start');
         this.exec();
         return Promise.resolve();
     }
@@ -20,17 +19,17 @@ export default class PachinkoService extends PlayerService
     stop() {
         clearTimeout(this.timeout);
         this.currentStatus = Status.Stopped;
-        this.event.emit('pachinko:stop');
+        this.player.event.emit('pachinko:stop');
     }
 
     private async exec() {
         try {
-            const timeout = await this.game.getPachinko();
+            const timeout = await this.player.game.getPachinko();
 
             if (timeout === 0) {
-                const res = await this.game.claimRewardPachinko();
+                const res = await this.player.game.claimRewardPachinko();
 
-                this.event.emit('pachinko:freeReward');
+                this.player.event.emit('pachinko:freeReward');
                 return this.exec();
             }
 

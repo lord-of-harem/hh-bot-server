@@ -1,20 +1,19 @@
 import { PlayerService, Status } from './PlayerService';
-import Game from '../Game';
 import { Mission } from '../models/Mission';
-import { EventEmitter } from 'events';
+import Player from "../Player";
 
 export default class MissionService extends PlayerService
 {
     private currentMission = null;
     private reload = null;
 
-    constructor(private game: Game, private event: EventEmitter) {
+    constructor(private player: Player) {
         super();
     }
 
     async start(): Promise<any> {
         this.currentStatus = Status.Started;
-        this.event.emit('mission:start');
+        this.player.event.emit('mission:start');
         this.exec();
     }
 
@@ -22,12 +21,12 @@ export default class MissionService extends PlayerService
         clearTimeout(this.currentMission);
         clearTimeout(this.reload);
         this.currentStatus = Status.Stopped;
-        this.event.emit('mission:stop');
+        this.player.event.emit('mission:stop');
     }
 
     private async exec() {
         try {
-            let contest = await this.game.getMissions();
+            let contest = await this.player.game.getMissions();
             let missionRun: Mission | null = null;
 
             this.reload = setTimeout(() => this.exec(), contest.nextUpdate * 1000);
@@ -66,8 +65,8 @@ export default class MissionService extends PlayerService
      */
     private async launchMission(mission: Mission) {
         try {
-            await this.game.launchMission(mission);
-            this.event.emit('mission:launch', mission.id_mission);
+            await this.player.game.launchMission(mission);
+            this.player.event.emit('mission:launch', mission.id_mission);
             this.exec();
         }
 

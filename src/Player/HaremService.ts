@@ -1,32 +1,33 @@
 import { PlayerService, Status } from './PlayerService';
-import Game from '../Game';
-import { EventEmitter } from 'events';
+import Player from '../Player';
 
 export default class HaremService extends PlayerService
 {
     private girlsMoney: Map<number, number>;
 
-    constructor(private game: Game, private event: EventEmitter) {
+    constructor(private player: Player) {
         super();
 
         this.girlsMoney = new Map();
 
-        this.event.on('boss:dropGirl', () => {
-            if ( this.status() === Status.Started ) {
-                this.restart();
-            }
-        });
+        this.player.event
+            .on('boss:dropGirl', () => {
+                if ( this.status() === Status.Started ) {
+                    this.restart();
+                }
+            })
+        ;
     }
 
     start() {
         this.currentStatus = Status.Started;
 
-        return this.game
+        return this.player.game
             .getHarem()
             .then(girls =>
                 girls.forEach(girl => this.getMoney(girl.id, girl.pay_in * 1000))
             )
-            .then(() => this.event.emit('harem:start'))
+            .then(() => this.player.event.emit('harem:start'))
         ;
     }
 
@@ -36,7 +37,7 @@ export default class HaremService extends PlayerService
         }
 
         this.currentStatus = Status.Stopped;
-        this.event.emit('harem:stop');
+        this.player.event.emit('harem:stop');
     }
 
     /**
@@ -46,10 +47,10 @@ export default class HaremService extends PlayerService
      */
     private getMoney(girlId: number, timeout) {
         this.girlsMoney.set(girlId, setTimeout(() => {
-            this.game.getMoney(girlId)
+            this.player.game.getMoney(girlId)
                 .then(salary => {
                     this.getMoney(girlId, salary.time * 1000);
-                    this.event.emit('harem:getMoney', girlId, salary.money);
+                    this.player.event.emit('harem:getMoney', girlId, salary.money);
                 })
                 .catch(e => {
                     this.getMoney(girlId, 30 * 60 * 1000);

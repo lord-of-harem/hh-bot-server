@@ -13,6 +13,7 @@ import { Contest } from './models/Contest';
 
 export default class Game {
     private jar;
+    private id: string;
 
     constructor(private host) {
         let cookie = `Cookie="age_verification=1;`
@@ -30,6 +31,8 @@ export default class Game {
      * Authentifie l'utilisateur auprès du jeu
      */
     public async login(username: string, password: string): Promise<any> {
+        this.id = this.host + ':' + username;
+
         await request({
             uri: `${this.host}/home.html`,
             jar: this.jar,
