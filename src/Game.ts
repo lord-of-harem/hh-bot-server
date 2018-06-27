@@ -347,20 +347,7 @@ export default class Game {
             return Promise.reject(new Error('Boss no fighted'));
         }
 
-        res.reward = [];
-        const $ = cheerio.load('<div>' + res.end.reward + '</div>');
-
-        $('.slot').each((index, drop) => {
-            const $drop = $(drop);
-
-            if ( $drop.hasClass('girl-slot') ) {
-                res.reward.push({
-                    type: 'girl',
-                    id: parseInt($.find('img').attr('src').split('/')[3]),
-                    name: $.find('.title2 h1:first').text(),
-                });
-            }
-        });
+        this.compileFightResult(res);
 
         return res;
     }
