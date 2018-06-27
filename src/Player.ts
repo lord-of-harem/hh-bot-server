@@ -8,6 +8,8 @@ import ShopService from './Player/ShopService';
 import { EventEmitter } from 'events';
 import PachinkoService from './Player/PachinkoService';
 import * as PouchDb from 'pouchdb';
+import {PlayerDay} from "./models/PlayerDay";
+import * as moment from "moment";
 
 export enum Command {Start, Stop, Restart}
 export enum Service {Harem, Mission, Pvp, Boss, Shop, Pachinko}
@@ -19,8 +21,8 @@ export default class Player
     private services: Map<number, PlayerServiceInterface> = new Map();
     public event: EventEmitter;
 
-    constructor(public db: PouchDB.Database, server: string, private username: string, private password: string) {
-        this.game = new Game(server);
+    constructor(public db: PouchDB.Database, private host: string, private username: string, private password: string) {
+        this.game = new Game(this.host);
         this.event = new EventEmitter();
         this.initEventService();
 
@@ -71,6 +73,49 @@ export default class Player
         }
 
         return this.game.logout();
+    }
+
+    public async getCurrentDay(): Promise<PlayerDay> {
+        const day = moment().set({'hour': 0, 'minute': 0, 'second': 0, 'millisecond': 0});
+        const date = moment();
+
+        // Si on est avant 5h du matin
+        if ( date.isBefore(moment().set({'hour': 5, 'minute': 0, 'second': 0, 'millisecond': 0})) ) {
+            date.subtract(1,  'day');
+        }
+
+        const id: string = this.host + ':' + this.username + ':' + date.format('YYYY-MM-DD');
+
+        try {
+            return await this.db.get(id) as any as PlayerDay;
+        }
+
+        catch (e) {
+            return {
+                _id: id,
+                date: day.toDate(),
+                harem: {
+                    nbCollect: 0,
+                    money: 0,
+                },
+                boss: {
+                    nbBattle: 0,
+                    nbBattleLoose: 0,
+                    money: 0,
+                    xp: 0,
+                    mojo: 0,
+                    reward: [],
+                },
+                pvp: {
+                    nbBattle: 0,
+                    nbBattleLoose: 0,
+                    money: 0,
+                    xp: 0,
+                    mojo: 0,
+                    reward: [],
+                },
+            };
+        }
     }
 
     private initEventService() {

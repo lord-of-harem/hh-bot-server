@@ -10,10 +10,8 @@ import { Opponent } from './models/Opponent';
 import { Arena } from './models/Arena';
 import { Contest } from './models/Contest';
 
-
 export default class Game {
     private jar;
-    private id: string;
 
     constructor(private host) {
         let cookie = `Cookie="age_verification=1;`
@@ -31,8 +29,6 @@ export default class Game {
      * Authentifie l'utilisateur auprès du jeu
      */
     public async login(username: string, password: string): Promise<any> {
-        this.id = this.host + ':' + username;
-
         await request({
             uri: `${this.host}/home.html`,
             jar: this.jar,
@@ -286,7 +282,40 @@ export default class Game {
             return Promise.reject(new Error('Fight no launched'));
         }
 
+        this.compileFightResult(res);
+
         return res;
+    }
+
+    private compileFightResult(battle) {
+        battle.money    = 0;
+        battle.xp       = 0;
+        battle.mojo     = 0;
+        battle.reward   = [];
+
+        if ( battle.end.winner === 1 && battle.end.hasOwnProperty('up2') ) {
+            battle.money    = battle.end.up2.hasOwnProperty('soft_currency') ? battle.end.up2.soft_currency : 0;
+            battle.xp       = battle.end.up2.hasOwnProperty('xp') ? battle.end.up2.xp : 0;
+            battle.mojo     = battle.end.up2.hasOwnProperty('victory_points') ? battle.end.up2.victory_points : 0;
+
+            const $ = cheerio.load('<div>' + battle.end.reward.html + '</div>');
+
+            $('.slot').each(function() {
+                if ( $(this).hasClass('slot_xp') || $(this).hasClass('slot_SC') || $(this).hasClass('slot_mojo') || $(this).hasClass('girl-slot') ) {
+                    // Rien à faire, c'est du standard
+                }
+
+                else if ( $(this).is('[id_item]') ) {
+                    battle.reward.push(JSON.parse($(this).attr('data-d')));
+                }
+
+                else {
+                    battle.reward.push({
+                        source: battle.end.reward,
+                    });
+                }
+            });
+        }
     }
 
     /**
@@ -318,14 +347,14 @@ export default class Game {
             return Promise.reject(new Error('Boss no fighted'));
         }
 
-        res.drops = [];
-        const $ = cheerio.load('<div>' + res.end.drops + '</div>');
+        res.reward = [];
+        const $ = cheerio.load('<div>' + res.end.reward + '</div>');
 
         $('.slot').each((index, drop) => {
             const $drop = $(drop);
 
             if ( $drop.hasClass('girl-slot') ) {
-                res.drops.push({
+                res.reward.push({
                     type: 'girl',
                     id: parseInt($.find('img').attr('src').split('/')[3]),
                     name: $.find('.title2 h1:first').text(),

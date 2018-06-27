@@ -1,13 +1,18 @@
-import { PlayerService, Status } from './PlayerService';
+import { Status } from './PlayerService';
 import Player from '../Player';
+import {BattleService} from "./BattleService";
 
-export default class BossService extends PlayerService
+export default class BossService extends BattleService
 {
     private timeout = null;
     private bossId: number;
 
-    constructor(private player: Player) {
-        super();
+    constructor(player: Player) {
+        super(player);
+
+        this.player.event
+            .on('boss:fight', (bossId, battle) => this.saveBattle('boss', battle))
+        ;
     }
 
     start(bossId: number): Promise<any> {
@@ -34,7 +39,7 @@ export default class BossService extends PlayerService
                 }
             }
 
-            this.player.event.emit('boss:fight', this.bossId);
+            this.player.event.emit('boss:fight', this.bossId, res);
             return this.exec();
         }
 

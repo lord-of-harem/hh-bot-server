@@ -1,13 +1,18 @@
-import { PlayerService, Status } from './PlayerService';
+import { Status } from './PlayerService';
 import { Opponent } from '../models/Opponent';
 import Player from "../Player";
+import {BattleService} from "./BattleService";
 
-export default class PvpService extends PlayerService
+export default class PvpService extends BattleService
 {
     private pvp = null;
 
-    constructor(private player: Player) {
-        super();
+    constructor(player: Player) {
+        super(player);
+
+        this.player.event
+            .on('pvp:fight', battle => this.saveBattle('pvp', battle))
+        ;
     }
 
     async start(): Promise<any> {
@@ -46,8 +51,8 @@ export default class PvpService extends PlayerService
      */
     private async fight(opponent: Opponent) {
         try {
-            await this.player.game.fight(opponent);
-            this.player.event.emit('pvp:fight');
+            const res = await this.player.game.fight(opponent);
+            this.player.event.emit('pvp:fight', res);
         }
 
         catch (e) {

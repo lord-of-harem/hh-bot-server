@@ -1,5 +1,6 @@
 import { PlayerService, Status } from './PlayerService';
 import Player from '../Player';
+import {PlayerDay} from "../models/PlayerDay";
 
 export default class HaremService extends PlayerService
 {
@@ -16,6 +17,7 @@ export default class HaremService extends PlayerService
                     this.restart();
                 }
             })
+            .on('harem:getMoney', (bossId, money) => this.saveMoney(money))
         ;
     }
 
@@ -57,5 +59,18 @@ export default class HaremService extends PlayerService
                     console.error(e);
                 })
         }, timeout));
+    }
+
+    private async saveMoney(money: number) {
+        const day: PlayerDay = await this.player.getCurrentDay();
+        day.harem.nbCollect++;
+        day.harem.money += money;
+
+        try {
+            await this.player.db.put(day);
+        }
+        catch (e) {
+            return this.saveMoney(money);
+        }
     }
 }

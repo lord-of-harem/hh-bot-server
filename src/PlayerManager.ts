@@ -10,13 +10,17 @@ export default class PlayerManager
     constructor() {
         this.playersDb = new PouchDb(process.env.PLAYER_DB);
 
+        // TODO filter via la requête (ou alors faire une autre db)
         this.playersDb.allDocs({
             include_docs: true,
         }).then(result => {
-            result.rows.forEach(row => {
-                let p: PlayerModel = row.doc as any as PlayerModel;
-                this.initPlayer(p);
-            });
+            result.rows
+                .filter(row => row.doc.hasOwnProperty('username'))
+                .forEach(row => {
+                    let p: PlayerModel = row.doc as any as PlayerModel;
+                    this.initPlayer(p);
+                })
+            ;
         })
     }
 
@@ -75,6 +79,7 @@ export default class PlayerManager
                 }
 
                 return this.playersDb.put(player);
+                // TODO modifier référence player
             });
     }
 
@@ -97,6 +102,7 @@ export default class PlayerManager
                 }
 
                 return this.playersDb.put(player);
+                // TODO modifier référence player
             });
     }
 

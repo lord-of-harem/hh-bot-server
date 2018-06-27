@@ -7,7 +7,7 @@ export default abstract class Command
 
     abstract name(): string;
 
-    constructor(public pm: PlayerManager) {}
+    protected constructor(public pm: PlayerManager) {}
 
     exec(msg, ...args): void {
         const service = args.shift().toLowerCase();
@@ -22,9 +22,5 @@ export default abstract class Command
 
     addService(service: ServiceCommand) {
         this.services.set(service.name(), service);
-    }
-
-    protected getPlayer(msg) {
-        //this.pm.
     }
 }
