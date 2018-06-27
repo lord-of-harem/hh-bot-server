@@ -4,24 +4,22 @@ import Player, { Command, Service } from './Player';
 
 export default class PlayerManager
 {
-    private playersDb: PouchDB.Database;
+    private accountsDb: PouchDB.Database;
+    private discordDb: PouchDB.Database;
     private players: Map<string, Player> = new Map();
 
     constructor() {
-        this.playersDb = new PouchDb(process.env.PLAYER_DB);
+        this.accountsDb = new PouchDb(process.env.HOST_DATABASE + '/' + process.env.ACCOUNT_DB);
+        this.discordDb = new PouchDb(process.env.HOST_DATABASE + '/' + process.env.DISCORD_DB);
 
-        // TODO filter via la requête (ou alors faire une autre db)
-        this.playersDb.allDocs({
+        this.accountsDb.allDocs({
             include_docs: true,
-        }).then(result => {
-            result.rows
-                .filter(row => row.doc.hasOwnProperty('username'))
-                .forEach(row => {
-                    let p: PlayerModel = row.doc as any as PlayerModel;
-                    this.initPlayer(p);
-                })
-            ;
-        })
+        }).then(result => result.rows
+            .forEach(row => {
+                let p: PlayerModel = row.doc as any as PlayerModel;
+                this.initPlayer(p);
+            })
+        );
     }
 
     register(discordId: string, server: string, username: string, password: string) {
@@ -34,10 +32,10 @@ export default class PlayerManager
             server: server,
         };
 
-        return new Promise((resolve, reject) => this.playersDb.get(discordId)
+        return new Promise((resolve, reject) => this.accountsDb.get(discordId)
             .then(() => reject('Player already exists'))
             .catch(() => {
-                let p = new Player(this.playersDb, pm);
+                let p = new Player(this.accountsDb, pm);
 
                 return p.login()
                     .then(() => p.logout());
@@ -48,7 +46,7 @@ export default class PlayerManager
                 pm.services.push({service: Service.Shop, args: [120]});
                 pm.services.push({service: Service.Pachinko, args: []});
 
-                resolve(this.playersDb
+                resolve(this.accountsDb
                     .put(pm)
                     .then(() => this.initPlayer(pm))
                 );
@@ -67,7 +65,7 @@ export default class PlayerManager
         p.updateService(service, Command.Stop);
         p.updateService(service, Command.Start, ...args);
 
-        return this.playersDb.get(discordId)
+        return this.accountsDb.get(discordId)
             .then(resp => {
                 const player: PlayerModel = resp as any as PlayerModel;
                 let index = player.services.findIndex(s => s.service === service);
@@ -78,7 +76,7 @@ export default class PlayerManager
                     player.services[index].args = args;
                 }
 
-                return this.playersDb.put(player);
+                return this.accountsDb.put(player);
                 // TODO modifier référence player
             });
     }
@@ -92,7 +90,7 @@ export default class PlayerManager
 
         p.updateService(service, Command.Stop);
 
-        return this.playersDb.get(discordId)
+        return this.accountsDb.get(discordId)
             .then(resp => {
                 const player: PlayerModel = resp as any as PlayerModel;
                 let index = player.services.findIndex(s => s.service === service);
@@ -101,17 +99,22 @@ export default class PlayerManager
                     player.services.splice(index, 1);
                 }
 
-                return this.playersDb.put(player);
+                return this.accountsDb.put(player);
                 // TODO modifier référence player
             });
     }
 
     private initPlayer(pm: PlayerModel) {
-        let p = new Player(this.playersDb, pm);
+        let p = new Player(this.accountsDb, pm);
         this.players.set(pm.discordId, p);
 
         for ( let s of pm.services ) {
             p.updateService(s.service, Command.Start, ...s.args);
         }
+    }
+
+    public getAccount()
+    {
+
     }
 }

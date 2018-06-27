@@ -33,14 +33,9 @@ export default class BossService extends BattleService
         try {
             const res = await this.player.game.fightBoss(this.bossId);
 
-            for (let drop of res.drops) {
-                if (drop.type === 'girl') {
-                    this.player.event.emit('boss:dropGirl', drop);
-                }
-            }
+            // TODO emmetre en event en cas de loot fille
 
             this.player.event.emit('boss:fight', this.bossId, res);
-            return this.exec();
         }
 
         catch (e) {
