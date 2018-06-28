@@ -22,7 +22,7 @@ export abstract class BattleService extends PlayerService
         }
 
         try {
-            await this.player.db.put(day);
+            await this.player.pm.dayDb.put(day);
         }
         catch (e) {
             return this.saveBattle(context, battle);

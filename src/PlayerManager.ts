@@ -1,16 +1,19 @@
 import * as PouchDb from 'pouchdb';
 import { PlayerModel } from './models/Player';
 import Player, { Command, Service } from './Player';
+import {DiscordAccount} from "./models/DiscordAccount";
 
 export default class PlayerManager
 {
-    private accountsDb: PouchDB.Database;
-    private discordDb: PouchDB.Database;
+    public accountsDb: PouchDB.Database;
+    public discordDb: PouchDB.Database;
+    public dayDb: PouchDB.Database;
     private players: Map<string, Player> = new Map();
 
     constructor() {
         this.accountsDb = new PouchDb(process.env.HOST_DATABASE + '/' + process.env.ACCOUNT_DB);
         this.discordDb = new PouchDb(process.env.HOST_DATABASE + '/' + process.env.DISCORD_DB);
+        this.dayDb = new PouchDb(process.env.HOST_DATABASE + '/' + process.env.DAY_DB);
 
         this.accountsDb.allDocs({
             include_docs: true,
@@ -35,7 +38,7 @@ export default class PlayerManager
         return new Promise((resolve, reject) => this.accountsDb.get(discordId)
             .then(() => reject('Player already exists'))
             .catch(() => {
-                let p = new Player(this.accountsDb, pm);
+                let p = new Player(this, pm);
 
                 return p.login()
                     .then(() => p.logout());
@@ -55,57 +58,41 @@ export default class PlayerManager
         );
     }
 
-    startService(discordId: string, service: Service, ...args) {
-        if ( !this.players.has(discordId) ) {
-            return Promise.reject('');
-        }
-
-        let p: Player = this.players.get(discordId);
+    async startService(discordId: string, service: Service, ...args) {
+        const pm: PlayerModel = await this.getPlayerModel(discordId);
+        const p: Player = this.getPlayer(pm._id);
 
         p.updateService(service, Command.Stop);
         p.updateService(service, Command.Start, ...args);
 
-        return this.accountsDb.get(discordId)
-            .then(resp => {
-                const player: PlayerModel = resp as any as PlayerModel;
-                let index = player.services.findIndex(s => s.service === service);
+        let index = pm.services.findIndex(s => s.service === service);
 
-                if ( index === -1 ) {
-                    player.services.push({service: service, args: args});
-                } else {
-                    player.services[index].args = args;
-                }
-
-                return this.accountsDb.put(player);
-                // TODO modifier référence player
-            });
-    }
-
-    stopService(discordId: string, service: Service) {
-        if ( !this.players.has(discordId) ) {
-            return Promise.reject('');
+        if ( index === -1 ) {
+            pm.services.push({service: service, args: args});
+        } else {
+            pm.services[index].args = args;
         }
 
-        let p: Player = this.players.get(discordId);
+        return await this.accountsDb.put(pm);
+    }
+
+    async stopService(discordId: string, service: Service) {
+        const pm: PlayerModel = await this.getPlayerModel(discordId);
+        const p: Player = this.getPlayer(pm._id);
 
         p.updateService(service, Command.Stop);
 
-        return this.accountsDb.get(discordId)
-            .then(resp => {
-                const player: PlayerModel = resp as any as PlayerModel;
-                let index = player.services.findIndex(s => s.service === service);
+        let index = pm.services.findIndex(s => s.service === service);
 
-                if ( index !== -1 ) {
-                    player.services.splice(index, 1);
-                }
+        if ( index !== -1 ) {
+            pm.services.splice(index, 1);
+        }
 
-                return this.accountsDb.put(player);
-                // TODO modifier référence player
-            });
+        return await this.accountsDb.put(pm);
     }
 
     private initPlayer(pm: PlayerModel) {
-        let p = new Player(this.accountsDb, pm);
+        let p = new Player(this, pm);
         this.players.set(pm.discordId, p);
 
         for ( let s of pm.services ) {
@@ -113,8 +100,17 @@ export default class PlayerManager
         }
     }
 
-    public getAccount()
+    public async getPlayerModel(discordId: string): Promise<PlayerModel>
     {
+        const discord: DiscordAccount = await this.discordDb.get(discordId) as any;
+        return await this.accountsDb.get(discord.currentAccount) as any as PlayerModel;
+    }
 
+    public getPlayer(id: string): Player {
+        if ( !this.players.has(id) ) {
+            throw new Error(`Le joueur n'est pas chargé par le système`)
+        }
+
+        return this.players.get(id);
     }
 }

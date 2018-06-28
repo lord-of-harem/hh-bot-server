@@ -7,10 +7,10 @@ import BossService from './Player/BossService';
 import ShopService from './Player/ShopService';
 import { EventEmitter } from 'events';
 import PachinkoService from './Player/PachinkoService';
-import * as PouchDb from 'pouchdb';
 import {PlayerDay} from "./models/PlayerDay";
 import * as moment from "moment";
 import {PlayerModel} from "./models/Player";
+import PlayerManager from "./PlayerManager";
 
 export enum Command {Start, Stop, Restart}
 export enum Service {Harem, Mission, Pvp, Boss, Shop, Pachinko}
@@ -22,7 +22,7 @@ export default class Player
     private services: Map<number, PlayerServiceInterface> = new Map();
     public event: EventEmitter;
 
-    constructor(public db: PouchDB.Database, private player: PlayerModel) {
+    constructor(public pm: PlayerManager, private player: PlayerModel) {
         this.game = new Game(this.player.server);
         this.event = new EventEmitter();
         this.initEventService();
@@ -85,16 +85,21 @@ export default class Player
             date.subtract(1,  'day');
         }
 
-        const id: string = this.player.server + ':' + this.player.username + ':' + date.format('YYYY-MM-DD');
+        const id: string = this.player._id + ':' + date.format('YYYY-MM-DD');
 
         try {
-            return await this.db.get(id) as any as PlayerDay;
+            return await this.pm.dayDb.get(id) as any as PlayerDay;
         }
 
         catch (e) {
             return {
                 _id: id,
-                date: day.toDate(),
+                playerId: this.player._id,
+                date: [
+                    date.year(),
+                    date.month(),
+                    date.date(),
+                ],
                 harem: {
                     nbCollect: 0,
                     money: 0,

@@ -10,7 +10,8 @@ export interface Battle {
 
 export interface PlayerDay {
     _id: string;
-    date: Date;
+    playerId: string;
+    date: number[];
     harem: {
         nbCollect: number;
         money: number;

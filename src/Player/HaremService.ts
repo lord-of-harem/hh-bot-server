@@ -67,7 +67,7 @@ export default class HaremService extends PlayerService
         day.harem.money += money;
 
         try {
-            await this.player.db.put(day);
+            await this.player.pm.dayDb.put(day);
         }
         catch (e) {
             return this.saveMoney(money);
