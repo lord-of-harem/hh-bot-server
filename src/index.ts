@@ -1,5 +1,4 @@
 import PlayerManager from './PlayerManager';
-import { Service } from './Player';
 import discord from './Discord';
 import StartCommand from "./discord/StartCommand";
 import Harem from "./discord/services/harem";
@@ -9,7 +8,7 @@ import StatusCommand from "./discord/StatusCommand";
 import Boss from "./discord/services/boss";
 import Pachinko from "./discord/services/pachinko";
 import Pvp from "./discord/services/pvp";
-import Quest from "./discord/services/quest";
+import Mission from "./discord/services/mission";
 import Shop from "./discord/services/shop";
 import RegisterCommand from "./discord/RegisterCommand";
 import HelpCommand from "./discord/HelpCommand";
@@ -23,7 +22,7 @@ c.addService(Harem);
 c.addService(Boss);
 c.addService(Pachinko);
 c.addService(Pvp);
-c.addService(Quest);
+c.addService(Mission);
 c.addService(Shop);
 discord.addCommand(c);
 
@@ -32,7 +31,7 @@ c.addService(Harem);
 c.addService(Boss);
 c.addService(Pachinko);
 c.addService(Pvp);
-c.addService(Quest);
+c.addService(Mission);
 c.addService(Shop);
 discord.addCommand(c);
 
@@ -41,7 +40,7 @@ c.addService(Harem);
 c.addService(Boss);
 c.addService(Pachinko);
 c.addService(Pvp);
-c.addService(Quest);
+c.addService(Mission);
 c.addService(Shop);
 discord.addCommand(c);
 
@@ -50,7 +49,7 @@ c.addService(Harem);
 c.addService(Boss);
 c.addService(Pachinko);
 c.addService(Pvp);
-c.addService(Quest);
+c.addService(Mission);
 c.addService(Shop);
 discord.addCommand(c);
 

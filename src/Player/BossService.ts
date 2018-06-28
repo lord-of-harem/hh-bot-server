@@ -1,37 +1,45 @@
-import { PlayerService, Status } from './PlayerService';
-import Game from '../Game';
-import { EventEmitter } from 'events';
+import { Status } from './PlayerService';
+import Player from '../Player';
+import {BattleService} from "./BattleService";
 
-export default class BossService extends PlayerService
+export default class BossService extends BattleService
 {
     private timeout = null;
+    private bossId: number;
 
-    constructor(private game: Game, private event: EventEmitter) {
-        super();
+    constructor(player: Player) {
+        super(player);
+
+        this.player.event
+            .on('boss:fight', (bossId, battle) => this.saveBattle('boss', battle))
+        ;
     }
 
     start(bossId: number): Promise<any> {
-        this.game
-            .fightBoss(bossId)
-            .then(res => {
-                for ( let drop of res.drops ) {
-                    if ( drop.type === 'girl' ) {
-                        this.event.emit('drop:girl', drop)
-                    }
-                }
-
-                console.log('fight boss');
-                return this.start(bossId);
-            })
-            .catch(() => this.timeout = setTimeout(() => this.restart(bossId), 10 * 60000))
-        ;
-
+        this.bossId = bossId;
         this.currentStatus = Status.Started;
+        this.player.event.emit('boss:start');
+        this.exec();
         return Promise.resolve();
     }
 
     stop() {
         clearTimeout(this.timeout);
-        this.currentStatus = Status.Stopped
+        this.currentStatus = Status.Stopped;
+        this.player.event.emit('boss:stop');
+    }
+
+    private async exec() {
+        try {
+            const res = await this.player.game.fightBoss(this.bossId);
+
+            // TODO emmetre en event en cas de loot fille
+
+            this.player.event.emit('boss:fight', this.bossId, res);
+        }
+
+        catch (e) {
+            this.timeout = setTimeout(() => this.exec(), 10 * 60000)
+        }
     }
 }

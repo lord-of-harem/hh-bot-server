@@ -1,7 +1,7 @@
-import { Quest } from './Quest';
+import { Mission } from './Mission';
 
 export interface Contest
 {
     nextUpdate: number;
-    quests: Array<Quest>;
+    quests: Array<Mission>;
 }

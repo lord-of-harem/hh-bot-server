@@ -1,34 +1,38 @@
 import Game from './Game';
 import { PlayerServiceInterface } from './Player/PlayerService';
 import HaremService from './Player/HaremService';
-import QuestService from './Player/QuestService';
+import MissionService from './Player/MissionService';
 import PvpService from './Player/PvpService';
 import BossService from './Player/BossService';
 import ShopService from './Player/ShopService';
 import { EventEmitter } from 'events';
 import PachinkoService from './Player/PachinkoService';
+import {PlayerDay} from "./models/PlayerDay";
+import * as moment from "moment";
+import {PlayerModel} from "./models/Player";
+import PlayerManager from "./PlayerManager";
 
 export enum Command {Start, Stop, Restart}
-export enum Service {Harem, Quest, Pvp, Boss, Shop, Pachinko}
+export enum Service {Harem, Mission, Pvp, Boss, Shop, Pachinko}
 
 export default class Player
 {
-    private game: Game;
+    public game: Game;
     private isLogged = false;
     private services: Map<number, PlayerServiceInterface> = new Map();
-    private event: EventEmitter;
+    public event: EventEmitter;
 
-    constructor(server: string, private username: string, private password: string) {
-        this.game = new Game(server);
+    constructor(public pm: PlayerManager, private player: PlayerModel) {
+        this.game = new Game(this.player.server);
         this.event = new EventEmitter();
         this.initEventService();
 
-        this.services.set(Service.Harem, new HaremService(this.game, this.event));
-        this.services.set(Service.Quest, new QuestService(this.game, this.event));
-        this.services.set(Service.Pvp, new PvpService(this.game, this.event));
-        this.services.set(Service.Boss, new BossService(this.game, this.event));
-        this.services.set(Service.Shop, new ShopService(this.game, this.event));
-        this.services.set(Service.Pachinko, new PachinkoService(this.game, this.event));
+        this.services.set(Service.Harem, new HaremService(this));
+        this.services.set(Service.Mission, new MissionService(this));
+        this.services.set(Service.Pvp, new PvpService(this));
+        this.services.set(Service.Boss, new BossService(this));
+        this.services.set(Service.Shop, new ShopService(this));
+        this.services.set(Service.Pachinko, new PachinkoService(this));
     }
 
     public updateService(service: Service, command: Command, ...args) {
@@ -53,13 +57,13 @@ export default class Player
     /**
      * Authentifie le joueur si nécéssaire
      */
-    login() {
+    login(): Promise<any> {
         if ( this.isLogged ) {
             return Promise.resolve();
         }
 
         return this.game
-            .login(this.username, this.password)
+            .login(this.player.username, this.player.password)
             .then(() => this.isLogged = true)
         ;
     }
@@ -72,9 +76,75 @@ export default class Player
         return this.game.logout();
     }
 
+    public async getCurrentDay(): Promise<PlayerDay> {
+        const day = moment().set({'hour': 0, 'minute': 0, 'second': 0, 'millisecond': 0});
+        const date = moment();
+
+        // Si on est avant 5h du matin
+        if ( date.isBefore(moment().set({'hour': 5, 'minute': 0, 'second': 0, 'millisecond': 0})) ) {
+            date.subtract(1,  'day');
+        }
+
+        const id: string = this.player._id + ':' + date.format('YYYY-MM-DD');
+
+        try {
+            return await this.pm.dayDb.get(id) as any as PlayerDay;
+        }
+
+        catch (e) {
+            return {
+                _id: id,
+                playerId: this.player._id,
+                date: [
+                    date.year(),
+                    date.month(),
+                    date.date(),
+                ],
+                harem: {
+                    nbCollect: 0,
+                    money: 0,
+                },
+                boss: {
+                    nbBattle: 0,
+                    nbBattleLoose: 0,
+                    money: 0,
+                    xp: 0,
+                    mojo: 0,
+                    reward: [],
+                },
+                pvp: {
+                    nbBattle: 0,
+                    nbBattleLoose: 0,
+                    money: 0,
+                    xp: 0,
+                    mojo: 0,
+                    reward: [],
+                },
+            };
+        }
+    }
+
     private initEventService() {
         this.event
-            .on('drop:girl', () => {})
+            .on('boss:dropGirl', drop => console.log('boss:dropGirl', drop))
+            .on('boss:fight', bossId => console.log('boss:fight', bossId))
+            .on('harem:getMoney', (girlId, money) => console.log('harem:getMoney', girlId, money))
+            .on('mission:launch', missionId => console.log('mission:launch', missionId))
+            .on('pachinko:freeReward', () => console.log('pachinko:freeReward'))
+            .on('pvp:fight', () => console.log('pvp:fight'))
+            .on('shop:check', () => console.log('shop:check'))
+            .on('boss:start', () => console.log('boss:start'))
+            .on('boss:stop', () => console.log('boss:stop'))
+            .on('harem:start', () => console.log('harem:start'))
+            .on('harem:stop', () => console.log('harem:stop'))
+            .on('mission:start', () => console.log('mission:start'))
+            .on('mission:stop', () => console.log('mission:stop'))
+            .on('pachinko:start', () => console.log('pachinko:start'))
+            .on('pachinko:stop', () => console.log('pachinko:stop'))
+            .on('pvp:start', () => console.log('pvp:start'))
+            .on('pvp:stop', () => console.log('pvp:stop'))
+            .on('shop:start', () => console.log('shop:start'))
+            .on('shop:stop', () => console.log('shop:stop'))
         ;
     }
 }

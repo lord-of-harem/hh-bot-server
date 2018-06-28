@@ -1,44 +1,46 @@
 import { PlayerService, Status } from './PlayerService';
-import Game from '../Game';
-import { EventEmitter } from 'events';
+import Player from "../Player";
 
 export default class PachinkoService extends PlayerService
 {
     private timeout;
 
-    constructor(private game: Game, private event: EventEmitter) {
+    constructor(private player: Player) {
         super();
     }
 
     start(): Promise<any> {
         this.currentStatus = Status.Started;
-
-        return this.game.getPachinko()
-            .then(timeout => {
-                if ( timeout === 0 ) {
-                    this.game
-                        .claimRewardPachinko()
-                        .then(res => {
-                            console.log('claim reward pachinko');
-                            this.restart()
-                                .catch(console.error);
-                        })
-                    ;
-                }
-
-                else {
-                    this.timeout = setTimeout(() => this.restart(), timeout * 1000);
-                }
-            })
-            .catch(e => {
-                console.error(e);
-                this.restart();
-            })
-        ;
+        this.player.event.emit('pachinko:start');
+        this.exec();
+        return Promise.resolve();
     }
 
     stop() {
         clearTimeout(this.timeout);
         this.currentStatus = Status.Stopped;
+        this.player.event.emit('pachinko:stop');
+    }
+
+    private async exec() {
+        try {
+            const timeout = await this.player.game.getPachinko();
+
+            if (timeout === 0) {
+                const res = await this.player.game.claimRewardPachinko();
+
+                this.player.event.emit('pachinko:freeReward');
+                return this.exec();
+            }
+
+            else {
+                this.timeout = setTimeout(() => this.exec(), timeout * 1000);
+            }
+        }
+
+        catch (e) {
+            console.error(e);
+            this.restart();
+        }
     }
 }

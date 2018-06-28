@@ -1,28 +1,46 @@
 import * as PouchDb from 'pouchdb';
 import { PlayerModel } from './models/Player';
 import Player, { Command, Service } from './Player';
+import {DiscordAccount} from "./models/DiscordAccount";
+
+// uniquement pour que typescript ne râle pas
+function emit(...args) {}
 
 export default class PlayerManager
 {
-    private playersDb: PouchDB.Database;
+    public accountsDb: PouchDB.Database;
+    public discordDb: PouchDB.Database;
+    public dayDb: PouchDB.Database;
     private players: Map<string, Player> = new Map();
 
     constructor() {
-        this.playersDb = new PouchDb(process.env.PLAYER_DB);
+        this.accountsDb = new PouchDb(process.env.HOST_DATABASE + '/' + process.env.ACCOUNT_DB);
+        this.discordDb = new PouchDb(process.env.HOST_DATABASE + '/' + process.env.DISCORD_DB);
+        this.dayDb = new PouchDb(process.env.HOST_DATABASE + '/' + process.env.DAY_DB);
 
-        this.playersDb.allDocs({
+        this.createView(this.accountsDb, {
+            _id: '_design/account',
+            views: {
+                list: {
+                    map: function (doc) {
+                        emit([doc.server, doc.username], doc);
+                    }.toString()
+                }
+            }
+        });
+
+        this.accountsDb.query('account/list', {
             include_docs: true,
-        }).then(result => {
-            result.rows.forEach(row => {
+        }).then(result => result.rows
+            .forEach(row => {
                 let p: PlayerModel = row.doc as any as PlayerModel;
                 this.initPlayer(p);
-            });
-        })
+            })
+        );
     }
 
-    register(discordId: string, server: string, username: string, password: string) {
+    async register(discordId: string, server: string, username: string, password: string) {
         let pm: PlayerModel = {
-            _id: discordId,
             discordId: discordId,
             username: username,
             password: password,
@@ -30,83 +48,113 @@ export default class PlayerManager
             server: server,
         };
 
-        return new Promise((resolve, reject) => this.playersDb.get(discordId)
-            .then(() => reject('Player already exists'))
-            .catch(() => {
-                let p = new Player(server, username, password);
+        const result = await this.accountsDb.query('account/list', {
+            key: [pm.server, pm.username],
+        });
 
-                return p.login()
-                    .then(() => p.logout());
-            })
-            .then(() => {
-                pm.services.push({service: Service.Harem, args: []});
-                pm.services.push({service: Service.Quest, args: []});
-                pm.services.push({service: Service.Pvp, args: []});
-                pm.services.push({service: Service.Shop, args: [120]});
-                pm.services.push({service: Service.Pachinko, args: []});
-
-                resolve(this.playersDb
-                    .put(pm)
-                    .then(() => this.initPlayer(pm))
-                );
-            })
-            .catch(reject)
-        );
-    }
-
-    startService(discordId: string, service: Service, ...args) {
-        if ( !this.players.has(discordId) ) {
-            return Promise.reject('');
+        if ( result.rows.length > 0 ) {
+            throw new Error('Player already exists');
         }
 
-        let p: Player = this.players.get(discordId);
+        const p = new Player(this, pm);
+
+        await p.login();
+        await p.logout();
+
+        pm.services.push({service: Service.Harem, args: []});
+        pm.services.push({service: Service.Mission, args: []});
+        pm.services.push({service: Service.Shop, args: [120]});
+        pm.services.push({service: Service.Pachinko, args: []});
+
+        pm._id = (await this.accountsDb.post(pm)).id;
+
+        let discord: DiscordAccount;
+
+        try {
+            discord = await this.discordDb.get(discordId) as any as DiscordAccount;
+            discord.accounts.push(pm._id);
+        }
+
+        catch (e) {
+            discord = {
+                _id: discordId,
+                accounts: [pm._id],
+                currentAccount: pm._id,
+            };
+        }
+
+        this.discordDb.put(discord);
+
+        this.initPlayer(pm);
+    }
+
+    private async createView(db: PouchDB.Database, view) {
+        let data;
+
+        try {
+            data = Object.assign(await db.get(view._id), view);
+        }
+
+        catch (e) {
+            data = view;
+        }
+
+        await db.put(data);
+    }
+
+    async startService(discordId: string, service: Service, ...args) {
+        const pm: PlayerModel = await this.getPlayerModel(discordId);
+        const p: Player = this.getPlayer(pm._id);
 
         p.updateService(service, Command.Stop);
         p.updateService(service, Command.Start, ...args);
 
-        return this.playersDb.get(discordId)
-            .then(resp => {
-                const player: PlayerModel = resp as any as PlayerModel;
-                let index = player.services.findIndex(s => s.service === service);
+        let index = pm.services.findIndex(s => s.service === service);
 
-                if ( index === -1 ) {
-                    player.services.push({service: service, args: args});
-                } else {
-                    player.services[index].args = args;
-                }
-
-                return this.playersDb.put(player);
-            });
-    }
-
-    stopService(discordId: string, service: Service) {
-        if ( !this.players.has(discordId) ) {
-            return Promise.reject('');
+        if ( index === -1 ) {
+            pm.services.push({service: service, args: args});
+        } else {
+            pm.services[index].args = args;
         }
 
-        let p: Player = this.players.get(discordId);
+        return await this.accountsDb.put(pm);
+    }
+
+    async stopService(discordId: string, service: Service) {
+        const pm: PlayerModel = await this.getPlayerModel(discordId);
+        const p: Player = this.getPlayer(pm._id);
 
         p.updateService(service, Command.Stop);
 
-        return this.playersDb.get(discordId)
-            .then(resp => {
-                const player: PlayerModel = resp as any as PlayerModel;
-                let index = player.services.findIndex(s => s.service === service);
+        let index = pm.services.findIndex(s => s.service === service);
 
-                if ( index !== -1 ) {
-                    player.services.splice(index, 1);
-                }
+        if ( index !== -1 ) {
+            pm.services.splice(index, 1);
+        }
 
-                return this.playersDb.put(player);
-            });
+        return await this.accountsDb.put(pm);
     }
 
     private initPlayer(pm: PlayerModel) {
-        let p = new Player(pm.server, pm.username, pm.password);
+        let p = new Player(this, pm);
         this.players.set(pm.discordId, p);
 
         for ( let s of pm.services ) {
             p.updateService(s.service, Command.Start, ...s.args);
         }
+    }
+
+    public async getPlayerModel(discordId: string): Promise<PlayerModel>
+    {
+        const discord: DiscordAccount = await this.discordDb.get(discordId) as any;
+        return await this.accountsDb.get(discord.currentAccount) as any as PlayerModel;
+    }
+
+    public getPlayer(id: string): Player {
+        if ( !this.players.has(id) ) {
+            throw new Error(`Le joueur n'est pas chargé par le système`)
+        }
+
+        return this.players.get(id);
     }
 }

@@ -1,50 +1,62 @@
-import { PlayerService, Status } from './PlayerService';
-import Game from '../Game';
+import { Status } from './PlayerService';
 import { Opponent } from '../models/Opponent';
-import { EventEmitter } from 'events';
+import Player from "../Player";
+import {BattleService} from "./BattleService";
 
-export default class PvpService extends PlayerService
+export default class PvpService extends BattleService
 {
     private pvp = null;
 
-    constructor(private game: Game, private event: EventEmitter) {
-        super();
+    constructor(player: Player) {
+        super(player);
+
+        this.player.event
+            .on('pvp:fight', battle => this.saveBattle('pvp', battle))
+        ;
     }
 
-    start(): Promise<any> {
-        return this.game.getPvpOpponents()
-            .then(arena => {
-                for ( let opponent of arena.opponents ) {
-                    if ( opponent.enable ) {
-                        this.fight(opponent);
-                    }
-                }
-
-                this.pvp = setTimeout(() => this.restart(), arena.timeout * 1000);
-                this.currentStatus = Status.Started;
-            })
-            .catch(e => {
-                console.error(e);
-                this.restart();
-            })
-        ;
+    async start(): Promise<any> {
+        this.currentStatus = Status.Started;
+        this.player.event.emit('pvp:start');
+        this.exec();
     }
 
     stop() {
         clearTimeout(this.pvp);
         this.currentStatus = Status.Stopped;
+        this.player.event.emit('pvp:stop');
+    }
+
+    private async exec() {
+        try {
+            const arena = await this.player.game.getPvpOpponents();
+
+            for (let opponent of arena.opponents) {
+                if (opponent.enable) {
+                    await this.fight(opponent);
+                }
+            }
+
+            this.pvp = setTimeout(() => this.exec(), arena.timeout * 1000);
+        }
+
+        catch(e) {
+            console.error(e);
+            this.restart();
+        }
     }
 
     /**
      * Lance un combat contre un adversaire
      */
-    private fight(opponent: Opponent) {
-        console.log('fight');
+    private async fight(opponent: Opponent) {
+        try {
+            const res = await this.player.game.fight(opponent);
+            this.player.event.emit('pvp:fight', res);
+        }
 
-        return this.game.fight(opponent)
-            .catch(e => {
-                console.error(e);
-            })
-        ;
+        catch (e) {
+            console.error(e);
+        }
     }
 }
