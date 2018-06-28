@@ -137,7 +137,7 @@ export default class PlayerManager
 
     private initPlayer(pm: PlayerModel) {
         let p = new Player(this, pm);
-        this.players.set(pm.discordId, p);
+        this.players.set(pm._id, p);
 
         for ( let s of pm.services ) {
             p.updateService(s.service, Command.Start, ...s.args);
