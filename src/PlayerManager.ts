@@ -3,6 +3,9 @@ import { PlayerModel } from './models/Player';
 import Player, { Command, Service } from './Player';
 import {DiscordAccount} from "./models/DiscordAccount";
 
+// uniquement pour que typescript ne râle pas
+function emit(...args) {}
+
 export default class PlayerManager
 {
     public accountsDb: PouchDB.Database;
@@ -15,7 +18,18 @@ export default class PlayerManager
         this.discordDb = new PouchDb(process.env.HOST_DATABASE + '/' + process.env.DISCORD_DB);
         this.dayDb = new PouchDb(process.env.HOST_DATABASE + '/' + process.env.DAY_DB);
 
-        this.accountsDb.allDocs({
+        this.createView(this.accountsDb, {
+            _id: '_design/account',
+            views: {
+                list: {
+                    map: function (doc) {
+                        emit([doc.server, doc.username], doc);
+                    }.toString()
+                }
+            }
+        });
+
+        this.accountsDb.query('account/list', {
             include_docs: true,
         }).then(result => result.rows
             .forEach(row => {
@@ -25,9 +39,8 @@ export default class PlayerManager
         );
     }
 
-    register(discordId: string, server: string, username: string, password: string) {
+    async register(discordId: string, server: string, username: string, password: string) {
         let pm: PlayerModel = {
-            _id: discordId,
             discordId: discordId,
             username: username,
             password: password,
@@ -35,27 +48,58 @@ export default class PlayerManager
             server: server,
         };
 
-        return new Promise((resolve, reject) => this.accountsDb.get(discordId)
-            .then(() => reject('Player already exists'))
-            .catch(() => {
-                let p = new Player(this, pm);
+        const result = await this.accountsDb.query('account/list', {
+            key: [pm.server, pm.username],
+        });
 
-                return p.login()
-                    .then(() => p.logout());
-            })
-            .then(() => {
-                pm.services.push({service: Service.Harem, args: []});
-                pm.services.push({service: Service.Mission, args: []});
-                pm.services.push({service: Service.Shop, args: [120]});
-                pm.services.push({service: Service.Pachinko, args: []});
+        if ( result.rows.length > 0 ) {
+            throw new Error('Player already exists');
+        }
 
-                resolve(this.accountsDb
-                    .put(pm)
-                    .then(() => this.initPlayer(pm))
-                );
-            })
-            .catch(reject)
-        );
+        const p = new Player(this, pm);
+
+        await p.login();
+        await p.logout();
+
+        pm.services.push({service: Service.Harem, args: []});
+        pm.services.push({service: Service.Mission, args: []});
+        pm.services.push({service: Service.Shop, args: [120]});
+        pm.services.push({service: Service.Pachinko, args: []});
+
+        pm._id = (await this.accountsDb.post(pm)).id;
+
+        let discord: DiscordAccount;
+
+        try {
+            discord = await this.discordDb.get(discordId) as any as DiscordAccount;
+            discord.accounts.push(pm._id);
+        }
+
+        catch (e) {
+            discord = {
+                _id: discordId,
+                accounts: [pm._id],
+                currentAccount: pm._id,
+            };
+        }
+
+        this.discordDb.put(discord);
+
+        this.initPlayer(pm);
+    }
+
+    private async createView(db: PouchDB.Database, view) {
+        let data;
+
+        try {
+            data = Object.assign(await db.get(view._id), view);
+        }
+
+        catch (e) {
+            data = view;
+        }
+
+        await db.put(data);
     }
 
     async startService(discordId: string, service: Service, ...args) {
