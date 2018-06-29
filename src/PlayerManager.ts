@@ -27,16 +27,10 @@ export default class PlayerManager
                     }.toString()
                 }
             }
-        });
+        }).catch(e => console.error(e)); // TODO problème avec la MaJ index
 
-        this.accountsDb.query('account/list', {
-            include_docs: true,
-        }).then(result => result.rows
-            .forEach(row => {
-                let p: PlayerModel = row.doc as any as PlayerModel;
-                this.initPlayer(p);
-            })
-        );
+        this.accountsDb.query('account/list', {include_docs: true})
+            .then(result => result.rows.forEach(row => this.initPlayer(row.doc as any as PlayerModel)));
     }
 
     async register(discordId: string, server: string, username: string, password: string) {

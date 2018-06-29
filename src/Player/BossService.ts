@@ -36,10 +36,11 @@ export default class BossService extends BattleService
             // TODO emmetre en event en cas de loot fille
 
             this.player.event.emit('boss:fight', this.bossId, res);
+            return this.exec();
         }
 
         catch (e) {
-            this.timeout = setTimeout(() => this.exec(), 10 * 60000)
+            this.timeout = setTimeout(() => this.exec(), 10 * 60 * 1000)
         }
     }
 }
