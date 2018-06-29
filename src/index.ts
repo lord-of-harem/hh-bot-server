@@ -12,6 +12,7 @@ import Mission from "./discord/services/mission";
 import Shop from "./discord/services/shop";
 import RegisterCommand from "./discord/RegisterCommand";
 import HelpCommand from "./discord/HelpCommand";
+import StatCommand from "./discord/StatCommand";
 
 const pm = new PlayerManager();
 
@@ -57,4 +58,7 @@ c = new RegisterCommand(pm);
 discord.addCommand(c);
 
 c = new HelpCommand(pm);
+discord.addCommand(c);
+
+c = new StatCommand(pm);
 discord.addCommand(c);

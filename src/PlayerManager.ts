@@ -151,4 +151,9 @@ export default class PlayerManager
 
         return this.players.get(id);
     }
+
+    public async getPlayerDiscord(discordId: string): Promise<Player> {
+        const pm: PlayerModel = await this.getPlayerModel(discordId);
+        return await this.getPlayer(pm._id);
+    }
 }

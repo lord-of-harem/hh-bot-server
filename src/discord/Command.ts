@@ -1,4 +1,4 @@
-import ServiceCommand from './ServiceCommand';
+import ServiceCommand from '../models/ServiceCommand';
 import PlayerManager from '../PlayerManager';
 
 export default abstract class Command
@@ -9,7 +9,7 @@ export default abstract class Command
 
     protected constructor(public pm: PlayerManager) {}
 
-    exec(msg, ...args): void {
+    exec(msg, ...args): void | Promise<any> {
         const service = args.shift().toLowerCase();
 
         if ( !this.services.has(service) ) {

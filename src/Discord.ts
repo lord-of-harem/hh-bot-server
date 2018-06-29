@@ -1,5 +1,5 @@
 import {Client} from 'discord.js';
-import Command from './models/Command';
+import Command from './discord/Command';
 
 class Discord
 {

@@ -1,6 +1,6 @@
 import ServiceCommand from '../../models/ServiceCommand';
 import {Service} from '../../Player';
-import Command from '../../models/Command'
+import Command from '../Command'
 
 class Shop extends ServiceCommand
 {

@@ -1,4 +1,4 @@
-import Command from '../models/Command';
+import Command from './Command';
 import PlayerManager from '../PlayerManager';
 
 export default class RegisterCommand extends Command
