@@ -14,7 +14,17 @@ export default class StatCommand extends Command
     }
 
     async exec(msg) {
-        const p: Player = await this.pm.getPlayerDiscord(msg.author.id);
+        let response = await this.getStatMessage(msg.author.id);
+
+        if ( response === '' ) {
+            response = `Je n'ai malheureusement aucune statistiques pour aujourd'hui.`;
+        }
+
+        msg.reply(response);
+    }
+
+    public async getStatMessage(discordId: string): Promise<string> {
+        const p: Player = await this.pm.getPlayerDiscord(discordId);
         const day: PlayerDay = await p.getCurrentDay();
 
         let response = '';
@@ -62,13 +72,7 @@ export default class StatCommand extends Command
             response += `J'ai combatu en pvp ${day.pvp.nbBattle.toLocaleString('fr-BE')} fois${loose}. J'ai remporté un total de ${day.pvp.money.toLocaleString('fr-BE')} $, ${day.pvp.xp} xp et ${day.pvp.mojo} mojo.${reward}`;
         }
 
-        if ( response === '' ) {
-            response = `Je n'ai malheureusement aucune statistiques pour aujourd'hui.`;
-        }
-
-        this.reward(day.pvp.reward);
-
-        msg.reply(response);
+        return response;
     }
 
     private reward(rewards: any[]) {

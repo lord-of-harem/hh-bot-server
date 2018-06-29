@@ -22,7 +22,7 @@ export default class Player
     private services: Map<number, PlayerServiceInterface> = new Map();
     public event: EventEmitter;
 
-    constructor(public pm: PlayerManager, private player: PlayerModel) {
+    constructor(public pm: PlayerManager, public player: PlayerModel) {
         this.game = new Game(this.player.server);
         this.event = new EventEmitter();
         this.initEventService();
@@ -77,7 +77,6 @@ export default class Player
     }
 
     public async getCurrentDay(): Promise<PlayerDay> {
-        const day = moment().set({'hour': 0, 'minute': 0, 'second': 0, 'millisecond': 0});
         const date = moment();
 
         // Si on est avant 5h du matin

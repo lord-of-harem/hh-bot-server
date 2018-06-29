@@ -2,6 +2,10 @@ import * as PouchDb from 'pouchdb';
 import { PlayerModel } from './models/Player';
 import Player, { Command, Service } from './Player';
 import {DiscordAccount} from "./models/DiscordAccount";
+import {Discord} from "./Discord";
+import * as moment from "moment";
+import {User} from "discord.js";
+import StatCommand from "./discord/StatCommand";
 
 // uniquement pour que typescript ne râle pas
 function emit(...args) {}
@@ -13,7 +17,7 @@ export default class PlayerManager
     public dayDb: PouchDB.Database;
     private players: Map<string, Player> = new Map();
 
-    constructor() {
+    constructor(private discord: Discord) {
         this.accountsDb = new PouchDb(process.env.HOST_DATABASE + '/' + process.env.ACCOUNT_DB);
         this.discordDb = new PouchDb(process.env.HOST_DATABASE + '/' + process.env.DISCORD_DB);
         this.dayDb = new PouchDb(process.env.HOST_DATABASE + '/' + process.env.DAY_DB);
@@ -31,6 +35,34 @@ export default class PlayerManager
 
         this.accountsDb.query('account/list', {include_docs: true})
             .then(result => result.rows.forEach(row => this.initPlayer(row.doc as any as PlayerModel)));
+
+        this.initDayStats();
+    }
+
+    private initDayStats() {
+        const nextDay = moment().set({'hour': 4, 'minute': 55, 'second': 0, 'millisecond': 0});
+
+        if ( nextDay.diff(moment()) < 0 ) {
+            nextDay.add(1, 'day');
+        }
+
+        setTimeout(() => {
+            this.sendDayStats();
+            setInterval(() => this.sendDayStats(), 86400000);
+        }, nextDay.diff(moment()));
+    }
+
+    private async sendDayStats() {
+        const stat = new StatCommand(this);
+
+        for ( const player of this.players.values() ) {
+            const playerDiscord: User = await this.discord.fetchUser(player.player.discordId);
+            const statMsg = await stat.getStatMessage(player.player.discordId);
+
+            if ( statMsg !== '' ) {
+                playerDiscord.send(statMsg);
+            }
+        }
     }
 
     async register(discordId: string, server: string, username: string, password: string) {

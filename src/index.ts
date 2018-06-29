@@ -14,7 +14,7 @@ import RegisterCommand from "./discord/RegisterCommand";
 import HelpCommand from "./discord/HelpCommand";
 import StatCommand from "./discord/StatCommand";
 
-const pm = new PlayerManager();
+const pm = new PlayerManager(discord);
 
 let c;
 

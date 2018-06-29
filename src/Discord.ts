@@ -1,7 +1,7 @@
-import {Client} from 'discord.js';
+import {Client, User} from 'discord.js';
 import Command from './discord/Command';
 
-class Discord
+export class Discord
 {
     private client;
     private commands: Map<string, Command> = new Map();
@@ -10,7 +10,7 @@ class Discord
         this.client = new Client();
         this.client
             .on('message', msg => this.message(msg))
-            .on('ready', () => console.log('discord bot ready'))
+            .on('ready', () => this.ready())
             .on('error', console.error)
         ;
         this.client.login(process.env.DISCORD_TOKEN);
@@ -27,6 +27,14 @@ class Discord
 
     addCommand(command: Command) {
         this.commands.set(command.name(), command);
+    }
+
+    async ready() {
+        console.log('discord bot ready');
+    }
+
+    async fetchUser(id: string): Promise<User> {
+        return await this.client.fetchUser(id);
     }
 }
 
