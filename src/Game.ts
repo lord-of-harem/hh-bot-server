@@ -12,6 +12,7 @@ import { Contest } from './models/Contest';
 
 export default class Game {
     private jar;
+    private sessionId;
 
     constructor(private host) {
         let cookie = `Cookie="age_verification=1;`
@@ -23,21 +24,31 @@ export default class Game {
 
         this.jar = request.jar();
         this.jar.setCookie(cookie, this.host);
+        this.sessionId = (1000000 * Math.random())|0;
+    }
+
+    private async req(options) {
+        return await request(Object.assign({
+            headers: {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2228.0 Safari/537.36',
+            },
+            proxy: `http://${process.env.LUMINATI_USERNAME}-country-fr-session-${this.sessionId}:${process.env.LUMINATI_PASSWORD}@zproxy.lum-superproxy.io:22225`,
+            jar: this.jar,
+        }, options));
     }
 
     /**
      * Authentifie l'utilisateur auprès du jeu
      */
     public async login(username: string, password: string): Promise<any> {
-        await request({
+        await this.req({
             uri: `${this.host}/home.html`,
             jar: this.jar,
         });
 
-        let res = await request({
+        let res = await this.req({
                 method: 'POST',
                 uri: `${this.host}/phoenix-ajax.php`,
-                jar: this.jar,
                 form: {
                     login: username,
                     password: password,
@@ -53,9 +64,8 @@ export default class Game {
             return Promise.reject("Login error\n" + res.error);
         }
 
-        return request({
+        return this.req({
             uri: `${this.host}/home.html`,
-            jar: this.jar,
         });
     }
 
@@ -63,9 +73,8 @@ export default class Game {
      * Déconnecte l'utilisateur aurprès du jeu
      */
     public logout() {
-        return request({
+        return this.req({
             uri: `${this.host}/intro.php?phoenix_member=logout`,
-            jar: this.jar,
         });
     }
 
@@ -73,9 +82,8 @@ export default class Game {
      * Récupère la liste des filles dans le harem du joueur
      */
     public async getHarem(): Promise<Array<GirlHarem>> {
-        let res = await request({
+        let res = await this.req({
             uri: `${this.host}/harem.html`,
-            jar: this.jar,
         });
 
         const $ = cheerio.load(res);
@@ -102,10 +110,9 @@ export default class Game {
      * Récupère l'argent d'une fille
      */
     public async getMoney(girl: number): Promise<Salary> {
-        let res = await request({
+        let res = await this.req({
             method: 'POST',
             uri: `${this.host}/ajax.php`,
-            jar: this.jar,
             form: {
                 class: 'Girl',
                 who: girl,
@@ -125,10 +132,9 @@ export default class Game {
      * Récupère la liste des missions du joueur
      */
     public async getMissions(): Promise<Contest> {
-        let res = await request({
+        let res = await this.req({
             method: 'GET',
             uri: `${this.host}/activities.html?tab=missions`,
-            jar: this.jar,
         });
 
         const $ = cheerio.load(res);
@@ -173,10 +179,9 @@ export default class Game {
      * Lance une mission
      */
     public async launchMission(mission: Mission) {
-        let res = await request({
+        let res = await this.req({
             method: 'POST',
             uri: `${this.host}/ajax.php`,
-            jar: this.jar,
             form: {
                 class: 'Missions',
                 action: 'start_mission',
@@ -197,10 +202,9 @@ export default class Game {
      * Récupère la liste des combattants
      */
     public async getPvpOpponents(): Promise<Arena> {
-        let res = await request({
+        let res = await this.req({
             method: 'GET',
             uri: `${this.host}/arena.html`,
-            jar: this.jar,
         });
 
         const $res = cheerio.load(res);
@@ -254,10 +258,9 @@ export default class Game {
      * Lance un combat contre un autre joueur
      */
     public async fight(opponent: Opponent) {
-        let res = await request({
+        let res = await this.req({
             method: 'GET',
             uri: `${this.host}/battle.html?id_arena=${opponent.id_arena}`,
-            jar: this.jar,
         });
 
         const $ = cheerio.load(res);
@@ -266,10 +269,9 @@ export default class Game {
         const script = new Script($('body script').get()[2].children[0].data);
         script.runInNewContext(data);
 
-        res = await request({
+        res = await this.req({
             method: 'POST',
             uri: `${this.host}/ajax.php`,
-            jar: this.jar,
             form: {
                 class: 'Battle',
                 action: 'fight',
@@ -322,10 +324,9 @@ export default class Game {
      * Lance un combat contre un boss
      */
     public async fightBoss(bossId: number) {
-        let res = await request({
+        let res = await this.req({
             method: 'POST',
             uri: `${this.host}/ajax.php`,
-            jar: this.jar,
             form: {
                 class: 'Battle',
                 action: 'fight',
@@ -356,9 +357,8 @@ export default class Game {
      * Renvoie le temps avant que le marché puisse être renouvellé
      */
     public async getShop(): Promise<number> {
-        let res = await request({
+        let res = await this.req({
             uri: `${this.host}/shop.html`,
-            jar: this.jar,
         });
 
         const $ = cheerio.load(res);
@@ -370,9 +370,8 @@ export default class Game {
      * Renvoie le temps avant que le pachinko gratuit soie jouable
      */
     public async getPachinko(): Promise<number> {
-        let res = await request({
+        let res = await this.req({
             uri: `${this.host}/pachinko.html`,
-            jar: this.jar,
         });
 
         const $ = cheerio.load(res);
@@ -396,10 +395,9 @@ export default class Game {
      * Récupère la récompense gratuite au pachinko
      */
     public async claimRewardPachinko(): Promise<any> {
-        let res = await request({
+        let res = await this.req({
             method: 'POST',
             uri: `${this.host}/ajax.php`,
-            jar: this.jar,
             form: {
                 class: 'Pachinko',
                 action: 'play',
