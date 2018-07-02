@@ -56,11 +56,16 @@ export default class PlayerManager
         const stat = new StatCommand(this);
 
         for ( const player of this.players.values() ) {
-            const playerDiscord: User = await this.discord.fetchUser(player.player.discordId);
-            const statMsg = await stat.getStatMessage(player.player.discordId);
+            try {
+                const playerDiscord: User = await this.discord.fetchUser(player.player.discordId);
+                const statMsg = await stat.getStatMessage(player.player.discordId);
 
-            if ( statMsg !== '' ) {
-                playerDiscord.send(statMsg);
+                if (statMsg !== '') {
+                    playerDiscord.send(statMsg);
+                }
+            }
+            catch (e) {
+                console.error(`Erreur lors de l'envoie des stats quotidienne`, e);
             }
         }
     }
