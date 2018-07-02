@@ -18,9 +18,9 @@ export default class PlayerManager
     private players: Map<string, Player> = new Map();
 
     constructor(private discord: Discord) {
-        this.accountsDb = new PouchDb(process.env.HOST_DATABASE + '/' + process.env.ACCOUNT_DB);
-        this.discordDb = new PouchDb(process.env.HOST_DATABASE + '/' + process.env.DISCORD_DB);
-        this.dayDb = new PouchDb(process.env.HOST_DATABASE + '/' + process.env.DAY_DB);
+        this.accountsDb = new PouchDb(process.env.HOST_DATABASE + process.env.ACCOUNT_DB);
+        this.discordDb = new PouchDb(process.env.HOST_DATABASE + process.env.DISCORD_DB);
+        this.dayDb = new PouchDb(process.env.HOST_DATABASE + process.env.DAY_DB);
 
         this.createView(this.accountsDb, {
             _id: '_design/account',
